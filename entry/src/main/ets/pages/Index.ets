@@ -11,8 +11,6 @@ import {
   getMapMarkers
 } from '../services/MockDialectService';
 
-const ACCENT: ResourceColor = $r('app.color.accent');
-
 @Entry
 @Component
 struct Index {
@@ -20,7 +18,6 @@ struct Index {
   @State selectedSource: FellowSource = FellowSource.NEARBY;
   @State selectedUserId: string = '';
   @State assessmentOpen: boolean = false;
-  @State currentUserCreated: boolean = false;
   @State windowWidth: number = 360;
   @State currentUser: FellowUser =
     createCurrentUserFromAssessment(createSimulatedAssessment('四川', '四川话'));
@@ -29,17 +26,7 @@ struct Index {
 
   build() {
     Stack() {
-      if (this.assessmentOpen) {
-        VoiceAssessmentPage({
-          onBack: (): void => { this.assessmentOpen = false; },
-          onComplete: (assessment: DialectAssessment): void => {
-            this.currentUser = createCurrentUserFromAssessment(assessment);
-            this.currentUserCreated = true;
-            this.assessmentOpen = false;
-            this.selectedUserId = this.currentUser.id;
-          }
-        })
-      } else if (this.selectedUser() !== undefined) {
+      if (this.selectedUser() !== undefined) {
         VoicePassportPage({
           passport: createPassport(
             this.selectedUser()!,
@@ -51,6 +38,10 @@ struct Index {
         this.wideHome()
       } else {
         this.compactHome()
+      }
+
+      if (this.assessmentOpen && this.selectedUser() === undefined) {
+        this.assessmentOverlay()
       }
     }
     .width('100%')
@@ -77,14 +68,14 @@ struct Index {
     Stack({ alignContent: Alignment.BottomEnd }) {
       HarmonyDialectMap({ markers: this.markers })
 
-      this.assessmentButton(20, 330)
-
       FellowPanel({
         users: this.users,
         wideMode: false,
         expanded: $panelExpanded,
         selectedSource: $selectedSource,
-        onOpenUser: (userId: string): void => { this.selectedUserId = userId; }
+        onOpenUser: (userId: string): void => { this.selectedUserId = userId; },
+        onStartAssessment: (): void => { this.assessmentOpen = true; },
+        onOpenPassport: (): void => { this.selectedUserId = this.currentUser.id; }
       })
         .zIndex(4)
     }
@@ -96,9 +87,8 @@ struct Index {
   @Builder
   private wideHome() {
     Row() {
-      Stack({ alignContent: Alignment.BottomStart }) {
+      Stack() {
         HarmonyDialectMap({ markers: this.markers })
-        this.wideAssessmentButton()
       }
       .layoutWeight(this.windowWidth >= 840 ? 7 : 3)
       .height('100%')
@@ -108,7 +98,9 @@ struct Index {
         wideMode: true,
         expanded: $panelExpanded,
         selectedSource: $selectedSource,
-        onOpenUser: (userId: string): void => { this.selectedUserId = userId; }
+        onOpenUser: (userId: string): void => { this.selectedUserId = userId; },
+        onStartAssessment: (): void => { this.assessmentOpen = true; },
+        onOpenPassport: (): void => { this.selectedUserId = this.currentUser.id; }
       })
         .width(this.windowWidth >= 840 ? '30%' : '40%')
         .height('100%')
@@ -119,51 +111,30 @@ struct Index {
   }
 
   @Builder
-  private assessmentButton(rightMargin: number, bottomMargin: number) {
-    Button() {
-      Row({ space: 8 }) {
-        Text('●')
-          .fontSize(12)
-          .fontColor($r('app.color.on_emphasis'))
-        Text('录音鉴定')
-          .fontSize(14)
-          .fontWeight(FontWeight.Bold)
-          .fontColor($r('app.color.on_emphasis'))
-      }
+  private assessmentOverlay() {
+    Stack({
+      alignContent: this.isWideLayout() ? Alignment.End : Alignment.Bottom
+    }) {
+      VoiceAssessmentPage({
+        onBack: (): void => { this.assessmentOpen = false; },
+        onComplete: (assessment: DialectAssessment): void => {
+          this.currentUser = createCurrentUserFromAssessment(assessment);
+          this.assessmentOpen = false;
+          this.selectedUserId = this.currentUser.id;
+        }
+      })
+        .width(this.isWideLayout() ? 480 : '100%')
+        .height(this.isWideLayout() ? '100%' : '88%')
+        .borderRadius(this.isWideLayout() ?
+          { topLeft: 28, bottomLeft: 28 } :
+          { topLeft: 28, topRight: 28 })
+        .clip(true)
+        .shadow({ radius: 30, color: $r('app.color.shadow_soft') })
     }
-    .height(48)
-    .padding({ left: 20, right: 20 })
-    .backgroundColor(ACCENT)
-    .borderRadius(24)
-    .shadow({ radius: 20, color: $r('app.color.shadow_accent') })
-    .margin({ right: rightMargin, bottom: bottomMargin })
-    .zIndex(5)
-    .onClick((): void => { this.assessmentOpen = true; })
-    .accessibilityText('开始模拟乡音录音鉴定')
-  }
-
-  @Builder
-  private wideAssessmentButton() {
-    Button() {
-      Row({ space: 8 }) {
-        Text('●')
-          .fontSize(12)
-          .fontColor($r('app.color.on_emphasis'))
-        Text('录音鉴定')
-          .fontSize(14)
-          .fontWeight(FontWeight.Bold)
-          .fontColor($r('app.color.on_emphasis'))
-      }
-    }
-    .height(48)
-    .padding({ left: 20, right: 20 })
-    .backgroundColor(ACCENT)
-    .borderRadius(24)
-    .shadow({ radius: 20, color: $r('app.color.shadow_accent') })
-    .margin({ left: 24, bottom: 24 })
-    .zIndex(5)
-    .onClick((): void => { this.assessmentOpen = true; })
-    .accessibilityText('开始模拟乡音录音鉴定')
+    .width('100%')
+    .height('100%')
+    .backgroundColor($r('app.color.map_overlay'))
+    .zIndex(10)
   }
 
   private isWideLayout(): boolean {
@@ -171,7 +142,7 @@ struct Index {
   }
 
   private selectedUser(): FellowUser | undefined {
-    if (this.currentUserCreated && this.selectedUserId === this.currentUser.id) {
+    if (this.selectedUserId === this.currentUser.id) {
       return this.currentUser;
     }
     return this.users.find((user: FellowUser): boolean => user.id === this.selectedUserId);

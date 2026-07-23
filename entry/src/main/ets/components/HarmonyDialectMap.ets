@@ -6,6 +6,7 @@ import {
   Permissions
 } from '@kit.AbilityKit';
 import { MapComponent, map, mapCommon } from '@kit.MapKit';
+import { geoLocationManager } from '@kit.LocationKit';
 import { MapMarker } from '../models/DialectModels';
 import { DialectMap } from './DialectMap';
 
@@ -19,6 +20,7 @@ export struct HarmonyDialectMap {
   @State locationStatusMessage: string = '';
   private mapController?: map.MapComponentController;
   private hasRequestedLocation: boolean = false;
+  private locationAuthorized: boolean = false;
   private mapOptions: mapCommon.MapOptions = {
     position: {
       target: {
@@ -80,24 +82,6 @@ export struct HarmonyDialectMap {
         }
 
         if (this.mapReady) {
-          Column({ space: 3 }) {
-            Text('听见每一方水土')
-              .fontSize(12)
-              .fontColor($r('app.color.ink_secondary'))
-              .fontWeight(FontWeight.Medium)
-              .letterSpacing(1.2)
-            Text('乡音地图')
-              .fontSize(26)
-              .fontWeight(FontWeight.Bold)
-              .fontColor($r('app.color.ink_primary'))
-          }
-          .alignItems(HorizontalAlign.Start)
-          .padding({ left: 16, right: 16, top: 12, bottom: 12 })
-          .backgroundColor($r('app.color.surface_primary'))
-          .borderRadius(14)
-          .position({ x: 20, y: 16 })
-          .shadow({ radius: 16, color: $r('app.color.shadow_soft') })
-
           Column({ space: 8 }) {
             Button(this.locationRequestInFlight ? '定位中' : '我的位置')
               .fontSize(14)
@@ -174,7 +158,13 @@ export struct HarmonyDialectMap {
     }
 
     if (this.hasRequestedLocation) {
-      this.locationStatusMessage = '如需开启定位，请在系统设置中允许乡音地图访问位置';
+      if (this.locationAuthorized) {
+        this.locationRequestInFlight = true;
+        await this.captureAndCenterLocation();
+        this.locationRequestInFlight = false;
+      } else {
+        this.locationStatusMessage = '如需开启定位，请在系统设置中允许乡音地图访问位置';
+      }
       return;
     }
 
@@ -193,9 +183,10 @@ export struct HarmonyDialectMap {
       const granted = result.authResults.some((authResult: number) => authResult === 0);
 
       if (granted && this.mapController) {
+        this.locationAuthorized = true;
         this.mapController.setMyLocationEnabled(true);
-        this.mapController.setMyLocationControlsEnabled(true);
-        this.locationStatusMessage = '已在地图中显示你的位置';
+        this.mapController.setMyLocationControlsEnabled(false);
+        await this.captureAndCenterLocation();
       } else {
         this.locationStatusMessage = '未获得定位权限，仍可浏览全国乡音地图';
       }
@@ -203,6 +194,27 @@ export struct HarmonyDialectMap {
       this.locationStatusMessage = '定位暂不可用，仍可浏览全国乡音地图';
     } finally {
       this.locationRequestInFlight = false;
+    }
+  }
+
+  private async captureAndCenterLocation(): Promise<void> {
+    if (!this.mapController) {
+      return;
+    }
+
+    try {
+      const location = await geoLocationManager.getCurrentLocation();
+      this.mapController.setMyLocation(location);
+      this.mapController.animateCamera(
+        map.newLatLng({
+          latitude: location.latitude,
+          longitude: location.longitude
+        }, 13),
+        600
+      );
+      this.locationStatusMessage = '已定位到你当前所在的位置';
+    } catch (locationError) {
+      this.locationStatusMessage = '已获得权限，但暂时无法捕捉当前位置';
     }
   }
 }

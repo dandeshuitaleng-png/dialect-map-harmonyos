@@ -13,6 +13,8 @@ export struct FellowPanel {
   @Link expanded: boolean;
   @Link selectedSource: FellowSource;
   onOpenUser: (userId: string) => void = (_userId: string): void => {};
+  onStartAssessment: () => void = (): void => {};
+  onOpenPassport: () => void = (): void => {};
   private panelStartExpanded: boolean = false;
 
   build() {
@@ -91,6 +93,32 @@ export struct FellowPanel {
         })
       }
       .padding({ left: 20, right: 20, bottom: 12 })
+      .width('100%')
+
+      Row({ space: 10 }) {
+        Button('录音鉴定')
+          .fontSize(14)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.on_emphasis'))
+          .height(48)
+          .layoutWeight(1)
+          .backgroundColor(ACCENT)
+          .borderRadius(14)
+          .onClick(this.onStartAssessment)
+          .accessibilityText('打开乡音录音鉴定面板')
+
+        Button('我的乡音护照')
+          .fontSize(14)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(INK)
+          .height(48)
+          .layoutWeight(1)
+          .backgroundColor($r('app.color.surface_muted'))
+          .borderRadius(14)
+          .onClick(this.onOpenPassport)
+          .accessibilityText('打开我的乡音护照')
+      }
+      .padding({ left: 20, right: 20, bottom: 14 })
       .width('100%')
 
       List({ space: 10 }) {
