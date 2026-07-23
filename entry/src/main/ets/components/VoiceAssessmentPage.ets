@@ -1,5 +1,12 @@
-import { DialectAssessment, RecordingState } from '../models/DialectModels';
-import { createSimulatedAssessment } from '../services/MockDialectService';
+import {
+  DialectAssessment,
+  DialectRegionCandidate,
+  RecordingState
+} from '../models/DialectModels';
+import {
+  correctSimulatedAssessment,
+  createSimulatedAssessment
+} from '../services/MockDialectService';
 
 const PAPER: ResourceColor = $r('app.color.background_page');
 const INK: ResourceColor = $r('app.color.ink_primary');
@@ -15,6 +22,8 @@ export struct VoiceAssessmentPage {
   @State recordingState: RecordingState = RecordingState.READY;
   @State assessment: DialectAssessment =
     createSimulatedAssessment('四川', '四川话');
+  @State correctionOpen: boolean = false;
+  @State resultConfirmed: boolean = false;
 
   build() {
     Column() {
@@ -163,7 +172,7 @@ export struct VoiceAssessmentPage {
             .fontSize(34)
             .fontWeight(FontWeight.Bold)
             .fontColor(INK)
-          Text('发音接近：成都、眉山一带')
+          Text(this.assessment.dialectGroup + ' · ' + this.assessment.dialectBranch)
             .fontSize(12)
             .fontColor(MUTED)
         }
@@ -186,6 +195,56 @@ export struct VoiceAssessmentPage {
         .backgroundColor($r('app.color.surface_primary'))
         .borderRadius(18)
         .border({ width: 1, color: $r('app.color.border') })
+
+        Column({ space: 12 }) {
+          Text('候选地域')
+            .fontSize(12)
+            .fontColor(MUTED)
+            .width('100%')
+          ForEach(this.assessment.regionCandidates, (candidate: DialectRegionCandidate): void => {
+            Row() {
+              Text(candidate.name)
+                .fontSize(14)
+                .fontWeight(FontWeight.Medium)
+                .fontColor(INK)
+              Blank()
+              Text(candidate.confidence.toString() + '%')
+                .fontSize(14)
+                .fontWeight(FontWeight.Bold)
+                .fontColor(candidate.name === '成都' ? ACCENT : MUTED)
+            }
+            .width('100%')
+          }, (candidate: DialectRegionCandidate): string => candidate.name)
+        }
+        .padding(18)
+        .backgroundColor($r('app.color.surface_primary'))
+        .borderRadius(16)
+        .border({ width: 1, color: $r('app.color.border') })
+
+        Column({ space: 10 }) {
+          Text('识别依据')
+            .fontSize(12)
+            .fontColor(MUTED)
+            .width('100%')
+          ForEach(this.assessment.evidence, (item: string): void => {
+            Row({ space: 8 }) {
+              Text('·').fontSize(18).fontColor(ACCENT)
+              Text(item)
+                .fontSize(13)
+                .fontColor(INK)
+                .lineHeight(19)
+                .layoutWeight(1)
+            }
+            .width('100%')
+          }, (item: string): string => item)
+          Text('相似乡音：' + this.assessment.similarDialects.join('、'))
+            .fontSize(12)
+            .fontColor(MUTED)
+            .width('100%')
+        }
+        .padding(18)
+        .backgroundColor($r('app.color.surface_muted'))
+        .borderRadius(16)
 
         Column({ space: 10 }) {
           Text('即将点亮')
@@ -216,16 +275,84 @@ export struct VoiceAssessmentPage {
           .backgroundColor($r('app.color.surface_muted'))
           .borderRadius(12)
 
-        Button('点亮四川并生成乡音护照')
+        if (!this.resultConfirmed && !this.correctionOpen) {
+          Row({ space: 10 }) {
+            Button('不太准确')
+              .layoutWeight(1)
+              .height(48)
+              .fontSize(14)
+              .fontColor(INK)
+              .backgroundColor($r('app.color.surface_primary'))
+              .border({ width: 1, color: $r('app.color.border') })
+              .borderRadius(14)
+              .onClick((): void => { this.correctionOpen = true; })
+            Button('符合我的乡音')
+              .layoutWeight(1)
+              .height(48)
+              .fontSize(14)
+              .fontWeight(FontWeight.Bold)
+              .fontColor($r('app.color.on_emphasis'))
+              .backgroundColor(ACCENT)
+              .borderRadius(14)
+              .onClick((): void => { this.resultConfirmed = true; })
+          }
           .width('100%')
-          .height(50)
-          .fontSize(15)
-          .fontWeight(FontWeight.Bold)
-          .fontColor($r('app.color.on_emphasis'))
-          .backgroundColor(ACCENT)
-          .borderRadius(14)
-          .margin({ top: 8, bottom: 24 })
-          .onClick((): void => { this.onComplete(this.assessment); })
+        }
+
+        if (this.correctionOpen) {
+          Column({ space: 10 }) {
+            Text('选择更接近的结果')
+              .fontSize(14)
+              .fontWeight(FontWeight.Bold)
+              .fontColor(INK)
+              .width('100%')
+            Button('四川话 · 成渝片')
+              .width('100%')
+              .height(44)
+              .fontColor(INK)
+              .backgroundColor($r('app.color.surface_primary'))
+              .border({ width: 1, color: $r('app.color.border') })
+              .onClick((): void => {
+                this.applyCorrection('四川', '四川话', '成渝片');
+              })
+            Button('重庆话 · 成渝片')
+              .width('100%')
+              .height(44)
+              .fontColor(INK)
+              .backgroundColor($r('app.color.surface_primary'))
+              .border({ width: 1, color: $r('app.color.border') })
+              .onClick((): void => {
+                this.applyCorrection('重庆', '重庆话', '成渝片');
+              })
+            Button('重新录制')
+              .width('100%')
+              .height(44)
+              .fontColor(ACCENT)
+              .backgroundColor(Color.Transparent)
+              .onClick((): void => { this.restartRecording(); })
+          }
+          .padding(16)
+          .backgroundColor($r('app.color.surface_confirm_soft'))
+          .borderRadius(16)
+        }
+
+        if (this.resultConfirmed) {
+          Text('已由你确认：' + this.assessment.dialectName + ' · ' +
+            this.assessment.dialectBranch)
+            .fontSize(12)
+            .fontColor(GREEN)
+            .width('100%')
+          Button('点亮' + this.assessment.regionName + '并生成乡音护照')
+            .width('100%')
+            .height(50)
+            .fontSize(15)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.on_emphasis'))
+            .backgroundColor(ACCENT)
+            .borderRadius(14)
+            .onClick((): void => { this.onComplete(this.assessment); })
+        }
+        Blank().height(24)
       }
       .padding({ left: 20, right: 20 })
       .width('100%')
@@ -250,6 +377,24 @@ export struct VoiceAssessmentPage {
     if (this.recordingState === RecordingState.ASSESSING) {
       this.recordingState = RecordingState.RESULT;
     }
+  }
+
+  private applyCorrection(regionName: string, dialectName: string, dialectBranch: string): void {
+    this.assessment = correctSimulatedAssessment(
+      this.assessment,
+      regionName,
+      dialectName,
+      dialectBranch
+    );
+    this.correctionOpen = false;
+    this.resultConfirmed = true;
+  }
+
+  private restartRecording(): void {
+    this.assessment = createSimulatedAssessment('四川', '四川话');
+    this.correctionOpen = false;
+    this.resultConfirmed = false;
+    this.recordingState = RecordingState.READY;
   }
 
   private stepEyebrow(): string {

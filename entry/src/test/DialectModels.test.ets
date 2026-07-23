@@ -30,6 +30,11 @@ export default function dialectModelsTests(): void {
       expect(assessment.isSimulated).assertTrue();
       expect(assessment.confidence).assertEqual(87);
       expect(assessment.retention).assertEqual(76);
+      expect(assessment.dialectGroup).assertEqual('西南官话');
+      expect(assessment.dialectBranch).assertEqual('成渝片');
+      expect(assessment.regionCandidates.length).assertEqual(3);
+      expect(assessment.evidence.length).assertEqual(3);
+      expect(assessment.needsConfirmation).assertTrue();
     });
 
     it('creates a passport from the same fellow identity data', 0, (): void => {

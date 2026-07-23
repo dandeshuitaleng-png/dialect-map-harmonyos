@@ -43,10 +43,21 @@ export interface FellowUser {
 
 export interface DialectAssessment {
   readonly dialectName: string;
+  readonly dialectGroup: string;
+  readonly dialectBranch: string;
   readonly regionName: string;
+  readonly regionCandidates: Array<DialectRegionCandidate>;
   readonly confidence: number;
   readonly retention: number;
+  readonly evidence: Array<string>;
+  readonly similarDialects: Array<string>;
+  readonly needsConfirmation: boolean;
   readonly isSimulated: boolean;
+}
+
+export interface DialectRegionCandidate {
+  readonly name: string;
+  readonly confidence: number;
 }
 
 export interface VoicePassport {

@@ -141,10 +141,41 @@ export function filterFellowsBySource(
 export function createSimulatedAssessment(regionName: string, dialectName: string): DialectAssessment {
   return {
     dialectName: dialectName,
+    dialectGroup: '西南官话',
+    dialectBranch: '成渝片',
     regionName: regionName,
+    regionCandidates: [
+      { name: '成都', confidence: 82 },
+      { name: '眉山', confidence: 11 },
+      { name: '重庆', confidence: 7 }
+    ],
     confidence: clampScore(87),
     retention: clampScore(76),
+    evidence: ['部分声母与韵母特征', '句尾语气与成都周边表达接近', '词汇节奏符合西南官话样例'],
+    similarDialects: ['重庆话', '自贡话'],
+    needsConfirmation: true,
     isSimulated: true
+  };
+}
+
+export function correctSimulatedAssessment(
+  assessment: DialectAssessment,
+  regionName: string,
+  dialectName: string,
+  dialectBranch: string
+): DialectAssessment {
+  return {
+    dialectName: dialectName,
+    dialectGroup: assessment.dialectGroup,
+    dialectBranch: dialectBranch,
+    regionName: regionName,
+    regionCandidates: assessment.regionCandidates,
+    confidence: assessment.confidence,
+    retention: assessment.retention,
+    evidence: assessment.evidence,
+    similarDialects: assessment.similarDialects,
+    needsConfirmation: false,
+    isSimulated: assessment.isSimulated
   };
 }
 
