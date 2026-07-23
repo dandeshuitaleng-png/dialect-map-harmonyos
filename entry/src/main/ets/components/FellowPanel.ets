@@ -174,7 +174,10 @@ export struct FellowPanel {
   }
 
   private compactHeight(): number {
-    return Math.min(340, this.availableHeight * 0.46);
+    if (this.portraitTabletMode) {
+      return 220;
+    }
+    return Math.min(315, this.availableHeight * 0.46);
   }
 
   private middleHeight(): number {
