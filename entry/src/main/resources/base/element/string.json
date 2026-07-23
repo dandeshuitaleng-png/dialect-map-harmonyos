@@ -11,7 +11,10 @@
     {
       "name": "entry_label",
       "value": "乡音地图"
+    },
+    {
+      "name": "location_permission_reason",
+      "value": "用于在全国乡音地图中显示你的当前位置，帮助发现附近同乡"
     }
   ]
 }
-
