@@ -33,7 +33,7 @@ export struct HarmonyDialectMap {
     tiltGesturesEnabled: false,
     scrollGesturesEnabled: true,
     zoomGesturesEnabled: true,
-    zoomControlsEnabled: true,
+    zoomControlsEnabled: false,
     myLocationControlsEnabled: false,
     compassControlsEnabled: false,
     scaleControlsEnabled: true
@@ -80,6 +80,24 @@ export struct HarmonyDialectMap {
         }
 
         if (this.mapReady) {
+          Column({ space: 3 }) {
+            Text('听见每一方水土')
+              .fontSize(12)
+              .fontColor($r('app.color.ink_secondary'))
+              .fontWeight(FontWeight.Medium)
+              .letterSpacing(1.2)
+            Text('乡音地图')
+              .fontSize(26)
+              .fontWeight(FontWeight.Bold)
+              .fontColor($r('app.color.ink_primary'))
+          }
+          .alignItems(HorizontalAlign.Start)
+          .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+          .backgroundColor($r('app.color.surface_primary'))
+          .borderRadius(14)
+          .position({ x: 20, y: 16 })
+          .shadow({ radius: 16, color: $r('app.color.shadow_soft') })
+
           Column({ space: 8 }) {
             Button(this.locationRequestInFlight ? '定位中' : '我的位置')
               .fontSize(14)
@@ -127,6 +145,7 @@ export struct HarmonyDialectMap {
           },
           title: marker.dialectName,
           snippet: marker.regionName + ' · ' + this.formatCount(marker.fellowCount),
+          icon: $r('app.media.dialect_marker'),
           clickable: true,
           draggable: false,
           visible: true,

@@ -18,16 +18,18 @@ export struct FellowPanel {
   build() {
     Column() {
       Column() {
-        Row() {
-          Divider()
-            .width(38)
-            .strokeWidth(4)
-            .color($r('app.color.ink_tertiary'))
-            .borderRadius(2)
+        if (!this.wideMode) {
+          Row() {
+            Divider()
+              .width(38)
+              .strokeWidth(4)
+              .color($r('app.color.ink_tertiary'))
+              .borderRadius(2)
+          }
+          .height(24)
+          .justifyContent(FlexAlign.Center)
+          .width('100%')
         }
-        .height(24)
-        .justifyContent(FlexAlign.Center)
-        .width('100%')
 
         Row() {
           Column({ space: 3 }) {
@@ -41,17 +43,19 @@ export struct FellowPanel {
           }
           .alignItems(HorizontalAlign.Start)
           Blank()
-          Button(this.expanded ? '收起' : '展开')
-            .fontSize(12)
-            .fontColor(ACCENT)
-            .height(48)
-            .padding({ left: 12, right: 12 })
-            .backgroundColor(Color.Transparent)
-            .onClick((): void => { this.expanded = !this.expanded; })
-            .accessibilityText(this.expanded ? '收起同乡面板' : '展开同乡面板')
+          if (!this.wideMode) {
+            Button(this.expanded ? '收起' : '展开')
+              .fontSize(12)
+              .fontColor(ACCENT)
+              .height(48)
+              .padding({ left: 12, right: 12 })
+              .backgroundColor(Color.Transparent)
+              .onClick((): void => { this.expanded = !this.expanded; })
+              .accessibilityText(this.expanded ? '收起同乡面板' : '展开同乡面板')
+          }
         }
         .width('100%')
-        .padding({ left: 20, right: 20, bottom: 14 })
+        .padding({ left: 20, right: 20, top: this.wideMode ? 24 : 0, bottom: 14 })
       }
       .gesture(
         PanGesture({ fingers: 1, direction: PanDirection.Vertical, distance: 4 })
@@ -89,31 +93,32 @@ export struct FellowPanel {
       .padding({ left: 20, right: 20, bottom: 12 })
       .width('100%')
 
-      Scroll() {
+      List({ space: 10 }) {
         if (this.visibleUsers().length === 0) {
-          Column({ space: 12 }) {
-            Text('这里还没有可展示的同乡')
-              .fontSize(16)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(INK)
-            Text('可以切换到推荐同乡，或录下第一段乡音。')
-              .fontSize(12)
-              .fontColor(MUTED)
-              .textAlign(TextAlign.Center)
+          ListItem() {
+            Column({ space: 12 }) {
+              Text('这里还没有可展示的同乡')
+                .fontSize(16)
+                .fontWeight(FontWeight.Bold)
+                .fontColor(INK)
+              Text('可以切换到推荐同乡，或录下第一段乡音。')
+                .fontSize(12)
+                .fontColor(MUTED)
+                .textAlign(TextAlign.Center)
+            }
+            .width('100%')
+            .padding({ left: 24, right: 24, top: 40, bottom: 40 })
+            .accessibilityGroup(true)
           }
-          .width('100%')
-          .padding({ left: 24, right: 24, top: 40, bottom: 40 })
-          .accessibilityGroup(true)
         } else {
-          Column({ space: 10 }) {
-            ForEach(this.visibleUsers(), (user: FellowUser): void => {
+          ForEach(this.visibleUsers(), (user: FellowUser): void => {
+            ListItem() {
               FellowCard({ user: user, onOpen: this.onOpenUser })
-            }, (user: FellowUser): string => user.id)
-          }
-          .padding({ left: 20, right: 20, bottom: 32 })
-          .width('100%')
+            }
+          }, (user: FellowUser): string => user.id)
         }
       }
+      .padding({ left: 20, right: 20, bottom: 32 })
       .layoutWeight(1)
       .scrollBar(BarState.Off)
     }
@@ -127,6 +132,7 @@ export struct FellowPanel {
   private visibleUsers(): FellowUser[] {
     return filterFellowsBySource(this.users, this.selectedSource);
   }
+
 }
 
 @Component

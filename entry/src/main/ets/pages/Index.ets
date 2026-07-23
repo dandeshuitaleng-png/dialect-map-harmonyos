@@ -96,11 +96,11 @@ struct Index {
   @Builder
   private wideHome() {
     Row() {
-      Stack({ alignContent: Alignment.BottomEnd }) {
+      Stack({ alignContent: Alignment.BottomStart }) {
         HarmonyDialectMap({ markers: this.markers })
-        this.assessmentButton(24, 24)
+        this.wideAssessmentButton()
       }
-      .layoutWeight(5)
+      .layoutWeight(this.windowWidth >= 840 ? 7 : 3)
       .height('100%')
 
       FellowPanel({
@@ -110,7 +110,7 @@ struct Index {
         selectedSource: $selectedSource,
         onOpenUser: (userId: string): void => { this.selectedUserId = userId; }
       })
-        .width(this.windowWidth >= 840 ? '34%' : '40%')
+        .width(this.windowWidth >= 840 ? '30%' : '40%')
         .height('100%')
     }
     .width('100%')
@@ -137,6 +137,30 @@ struct Index {
     .borderRadius(24)
     .shadow({ radius: 20, color: $r('app.color.shadow_accent') })
     .margin({ right: rightMargin, bottom: bottomMargin })
+    .zIndex(5)
+    .onClick((): void => { this.assessmentOpen = true; })
+    .accessibilityText('开始模拟乡音录音鉴定')
+  }
+
+  @Builder
+  private wideAssessmentButton() {
+    Button() {
+      Row({ space: 8 }) {
+        Text('●')
+          .fontSize(12)
+          .fontColor($r('app.color.on_emphasis'))
+        Text('录音鉴定')
+          .fontSize(14)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.on_emphasis'))
+      }
+    }
+    .height(48)
+    .padding({ left: 20, right: 20 })
+    .backgroundColor(ACCENT)
+    .borderRadius(24)
+    .shadow({ radius: 20, color: $r('app.color.shadow_accent') })
+    .margin({ left: 24, bottom: 24 })
     .zIndex(5)
     .onClick((): void => { this.assessmentOpen = true; })
     .accessibilityText('开始模拟乡音录音鉴定')
