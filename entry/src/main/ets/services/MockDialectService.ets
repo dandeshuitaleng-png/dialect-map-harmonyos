@@ -161,3 +161,23 @@ export function createPassport(
     isCurrentUser: isCurrentUser
   };
 }
+
+export function createCurrentUserFromAssessment(assessment: DialectAssessment): FellowUser {
+  return {
+    id: 'current-user',
+    nickname: '我的乡音',
+    initials: '我',
+    location: assessment.regionName + ' · 成都',
+    dialectName: assessment.dialectName,
+    distanceText: '当前用户',
+    source: FellowSource.CURRENT_REGION,
+    confidence: clampScore(assessment.confidence),
+    retention: clampScore(assessment.retention),
+    litRegions: [assessment.regionName],
+    fellowFriends: 0,
+    following: 0,
+    followers: 0,
+    voiceTitle: '我的第一段乡音',
+    voiceDurationSeconds: 14
+  };
+}

@@ -1,8 +1,15 @@
 import { DialectMap } from '../components/DialectMap';
 import { FellowPanel } from '../components/FellowPanel';
 import { VoicePassportPage } from '../components/VoicePassportPage';
-import { FellowSource, FellowUser, MapMarker, VoicePassport } from '../models/DialectModels';
-import { createPassport, getFellowUsers, getMapMarkers } from '../services/MockDialectService';
+import { VoiceAssessmentPage } from '../components/VoiceAssessmentPage';
+import { DialectAssessment, FellowSource, FellowUser, MapMarker } from '../models/DialectModels';
+import {
+  createCurrentUserFromAssessment,
+  createPassport,
+  createSimulatedAssessment,
+  getFellowUsers,
+  getMapMarkers
+} from '../services/MockDialectService';
 
 const ACCENT: string = '#DB643D';
 
@@ -12,11 +19,24 @@ struct Index {
   @State panelExpanded: boolean = false;
   @State selectedSource: FellowSource = FellowSource.NEARBY;
   @State selectedUserId: string = '';
+  @State assessmentOpen: boolean = false;
+  @State currentUserCreated: boolean = false;
   private readonly markers: MapMarker[] = getMapMarkers();
   private readonly users: FellowUser[] = getFellowUsers();
+  private readonly currentUser: FellowUser =
+    createCurrentUserFromAssessment(createSimulatedAssessment('四川', '四川话'));
 
   build() {
-    if (this.selectedUser() !== undefined) {
+    if (this.assessmentOpen) {
+      VoiceAssessmentPage({
+        onBack: (): void => { this.assessmentOpen = false; },
+        onComplete: (assessment: DialectAssessment): void => {
+          this.currentUserCreated = true;
+          this.assessmentOpen = false;
+          this.selectedUserId = this.currentUser.id;
+        }
+      })
+    } else if (this.selectedUser() !== undefined) {
       VoicePassportPage({
         passport: createPassport(this.selectedUser()!),
         onBack: (): void => { this.selectedUserId = ''; }
@@ -43,6 +63,7 @@ struct Index {
         .shadow({ radius: 20, color: 'rgba(147,61,34,0.30)' })
         .position({ x: 214, y: 356 })
         .zIndex(5)
+        .onClick((): void => { this.assessmentOpen = true; })
 
         FellowPanel({
           users: this.users,
@@ -59,6 +80,9 @@ struct Index {
   }
 
   private selectedUser(): FellowUser | undefined {
+    if (this.currentUserCreated && this.selectedUserId === this.currentUser.id) {
+      return this.currentUser;
+    }
     return this.users.find((user: FellowUser): boolean => user.id === this.selectedUserId);
   }
 }

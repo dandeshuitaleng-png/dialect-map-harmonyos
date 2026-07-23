@@ -2,6 +2,7 @@ import { describe, expect, it } from '@ohos/hypium';
 import { FellowSource } from '../main/ets/models/DialectModels';
 import {
   clampScore,
+  createCurrentUserFromAssessment,
   createPassport,
   createSimulatedAssessment,
   filterFellowsBySource,
@@ -38,6 +39,13 @@ export default function dialectModelsTests(): void {
       expect(passport.dialectName).assertEqual(user.dialectName);
       expect(passport.litRegions.length).assertEqual(user.litRegions.length);
     });
+
+    it('creates the current user from a simulated assessment and lights its region', 0, (): void => {
+      const assessment = createSimulatedAssessment('四川', '四川话');
+      const currentUser = createCurrentUserFromAssessment(assessment);
+      expect(currentUser.id).assertEqual('current-user');
+      expect(currentUser.litRegions[0]).assertEqual('四川');
+      expect(currentUser.confidence).assertEqual(assessment.confidence);
+    });
   });
 }
-
