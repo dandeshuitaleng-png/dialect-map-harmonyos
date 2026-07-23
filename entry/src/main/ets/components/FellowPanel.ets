@@ -11,12 +11,15 @@ export struct FellowPanel {
   @Prop users: FellowUser[];
   @Prop wideMode: boolean = false;
   @Prop portraitTabletMode: boolean = false;
+  @Prop availableHeight: number = 720;
   @Link expanded: boolean;
   @Link selectedSource: FellowSource;
   onOpenUser: (userId: string) => void = (_userId: string): void => {};
   onStartAssessment: () => void = (): void => {};
   onOpenPassport: () => void = (): void => {};
-  private panelStartExpanded: boolean = false;
+  @State panelHeight: number = 0;
+  @State panelStage: number = 0;
+  private panelStartHeight: number = 0;
 
   build() {
     Column() {
@@ -47,14 +50,19 @@ export struct FellowPanel {
           .alignItems(HorizontalAlign.Start)
           Blank()
           if (!this.wideMode) {
-            Button(this.expanded ? '收起' : '展开')
-              .fontSize(12)
-              .fontColor(ACCENT)
+            Button({ type: ButtonType.Circle }) {
+              Text(this.panelStage >= this.maximumStage() ? '⌄' : '⌃')
+                .fontSize(20)
+                .fontColor(ACCENT)
+            }
+              .width(48)
               .height(48)
-              .padding({ left: 12, right: 12 })
+              .fontColor(ACCENT)
               .backgroundColor(Color.Transparent)
-              .onClick((): void => { this.expanded = !this.expanded; })
-              .accessibilityText(this.expanded ? '收起同乡面板' : '展开同乡面板')
+              .onClick((): void => { this.advancePanelStage(); })
+              .accessibilityText(
+                this.panelStage >= this.maximumStage() ? '收起同乡面板' : '展开同乡面板'
+              )
           }
         }
         .width('100%')
@@ -63,16 +71,19 @@ export struct FellowPanel {
       .gesture(
         PanGesture({ fingers: 1, direction: PanDirection.Vertical, distance: 4 })
           .onActionStart((): void => {
-            this.panelStartExpanded = this.expanded;
+            this.panelStartHeight = this.currentPanelHeight();
+            this.panelHeight = this.panelStartHeight;
+          })
+          .onActionUpdate((event: GestureEvent): void => {
+            this.panelHeight = this.clampPanelHeight(
+              this.panelStartHeight - event.offsetY
+            );
           })
           .onActionEnd((event: GestureEvent): void => {
-            if (event.offsetY < -36) {
-              this.expanded = true;
-            } else if (event.offsetY > 36) {
-              this.expanded = false;
-            } else {
-              this.expanded = this.panelStartExpanded;
-            }
+            this.settlePanel(event.velocityY);
+          })
+          .onActionCancel((): void => {
+            this.snapToStage(this.panelStage);
           })
       )
 
@@ -152,10 +163,7 @@ export struct FellowPanel {
       .scrollBar(BarState.Off)
     }
     .width('100%')
-    .height(this.wideMode ? '100%' :
-      (this.portraitTabletMode ?
-        (this.expanded ? '72%' : '42%') :
-        (this.expanded ? '72%' : 315)))
+    .height(this.wideMode ? '100%' : this.currentPanelHeight())
     .backgroundColor(PAPER)
     .borderRadius({ topLeft: 26, topRight: 26 })
     .shadow({ radius: 30, color: $r('app.color.shadow_soft'), offsetY: -8 })
@@ -163,6 +171,88 @@ export struct FellowPanel {
 
   private visibleUsers(): FellowUser[] {
     return filterFellowsBySource(this.users, this.selectedSource);
+  }
+
+  private compactHeight(): number {
+    return Math.min(340, this.availableHeight * 0.46);
+  }
+
+  private middleHeight(): number {
+    return this.portraitTabletMode ? this.availableHeight * 0.42 : this.maximumHeight();
+  }
+
+  private maximumHeight(): number {
+    return this.availableHeight * 0.72;
+  }
+
+  private maximumStage(): number {
+    return this.portraitTabletMode ? 2 : 1;
+  }
+
+  private heightForStage(stage: number): number {
+    if (stage <= 0) {
+      return this.compactHeight();
+    }
+    if (stage >= this.maximumStage()) {
+      return this.maximumHeight();
+    }
+    return this.middleHeight();
+  }
+
+  private currentPanelHeight(): number {
+    if (this.panelHeight <= 0) {
+      return this.heightForStage(this.panelStage);
+    }
+    return this.clampPanelHeight(this.panelHeight);
+  }
+
+  private clampPanelHeight(height: number): number {
+    return Math.max(this.compactHeight(), Math.min(this.maximumHeight(), height));
+  }
+
+  private nearestStage(height: number): number {
+    if (!this.portraitTabletMode) {
+      return height >= (this.compactHeight() + this.maximumHeight()) / 2 ? 1 : 0;
+    }
+
+    const compactDistance = Math.abs(height - this.compactHeight());
+    const middleDistance = Math.abs(height - this.middleHeight());
+    const maximumDistance = Math.abs(height - this.maximumHeight());
+    if (compactDistance <= middleDistance && compactDistance <= maximumDistance) {
+      return 0;
+    }
+    if (middleDistance <= maximumDistance) {
+      return 1;
+    }
+    return 2;
+  }
+
+  private settlePanel(velocityY: number): void {
+    let targetStage = this.nearestStage(this.currentPanelHeight());
+    if (velocityY < -600) {
+      targetStage = Math.min(this.maximumStage(), targetStage + 1);
+    } else if (velocityY > 600) {
+      targetStage = Math.max(0, targetStage - 1);
+    }
+    this.snapToStage(targetStage);
+  }
+
+  private advancePanelStage(): void {
+    const targetStage = this.panelStage >= this.maximumStage() ?
+      0 : this.panelStage + 1;
+    this.snapToStage(targetStage);
+  }
+
+  private snapToStage(stage: number): void {
+    const targetHeight = this.heightForStage(stage);
+    this.panelStage = stage;
+    this.expanded = stage > 0;
+    this.getUIContext().animateTo({
+      duration: 220,
+      curve: Curve.EaseOut
+    }, (): void => {
+      this.panelHeight = targetHeight;
+    });
   }
 
 }
