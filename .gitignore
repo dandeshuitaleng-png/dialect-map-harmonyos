@@ -2,6 +2,7 @@
 .idea/
 build/
 entry/build/
+entry/.test/
 oh_modules/
 node_modules/
 local.properties
@@ -9,4 +10,3 @@ local.properties
 *.hsp
 *.app
 target/
-
