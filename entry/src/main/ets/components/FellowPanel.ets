@@ -156,43 +156,46 @@ struct FellowCard {
   onOpen: (userId: string) => void = (_userId: string): void => {};
 
   build() {
-    Row({ space: 12 }) {
-      Stack() {
-        Text(this.user.initials)
-          .fontSize(16)
-          .fontWeight(FontWeight.Bold)
-          .fontColor($r('app.color.on_emphasis'))
-      }
-      .width(44)
-      .height(44)
-      .borderRadius(22)
-      .backgroundColor(this.avatarColor())
-
-      Column({ space: 4 }) {
-        Row() {
-          Text(this.user.nickname)
-            .fontSize(15)
+    Button({ type: ButtonType.Normal }) {
+      Row({ space: 12 }) {
+        Stack() {
+          Text(this.user.initials)
+            .fontSize(16)
             .fontWeight(FontWeight.Bold)
-            .fontColor(INK)
-          Text(this.user.dialectName)
-            .fontSize(12)
-            .fontColor(ACCENT)
-            .backgroundColor($r('app.color.surface_accent_soft'))
-            .borderRadius(6)
-            .padding({ left: 6, right: 6, top: 3, bottom: 3 })
-            .margin({ left: 8 })
+            .fontColor($r('app.color.on_emphasis'))
         }
-        Text(this.user.location + ' · ' + this.user.distanceText)
-          .fontSize(12)
-          .fontColor(MUTED)
-          .maxLines(1)
-      }
-      .alignItems(HorizontalAlign.Start)
-      .layoutWeight(1)
+        .width(44)
+        .height(44)
+        .borderRadius(22)
+        .backgroundColor(this.avatarColor())
 
-      Text('›')
-        .fontSize(24)
-        .fontColor($r('app.color.ink_tertiary'))
+        Column({ space: 4 }) {
+          Row() {
+            Text(this.user.nickname)
+              .fontSize(15)
+              .fontWeight(FontWeight.Bold)
+              .fontColor(INK)
+            Text(this.user.dialectName)
+              .fontSize(12)
+              .fontColor(ACCENT)
+              .backgroundColor($r('app.color.surface_accent_soft'))
+              .borderRadius(6)
+              .padding({ left: 6, right: 6, top: 3, bottom: 3 })
+              .margin({ left: 8 })
+          }
+          Text(this.user.location + ' · ' + this.user.distanceText)
+            .fontSize(12)
+            .fontColor(MUTED)
+            .maxLines(1)
+        }
+        .alignItems(HorizontalAlign.Start)
+        .layoutWeight(1)
+
+        Text('›')
+          .fontSize(24)
+          .fontColor($r('app.color.ink_tertiary'))
+      }
+      .width('100%')
     }
     .width('100%')
     .padding(14)

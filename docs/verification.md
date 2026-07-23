@@ -13,12 +13,12 @@
 
 - 主 HAP：Hvigor `BUILD SUCCESSFUL`。
   - 路径：`entry/build/default/outputs/default/entry-default-unsigned.hap`
-  - 大小：2,568,341 bytes
-  - SHA-256：`74f653994dce586cfcb7cb5e551fc01b5ca705966b79ee535022aef949f9280b`
+  - 大小：2,597,694 bytes
+  - SHA-256：`da6d4494a800f3def1a7b22e5b0956b04cbc2f4a041cfb3e946b5acf7ed2b5ed`
 - `ohosTest` HAP：Hvigor `BUILD SUCCESSFUL`。
   - 路径：`entry/build/default/outputs/ohosTest/entry-ohosTest-unsigned.hap`
-  - 大小：3,619,228 bytes
-  - SHA-256：`9fbb7a29b24303cd757168969bee29bdd41fd5e8af49dadadb125af979fce5f9`
+  - 大小：3,621,832 bytes
+  - SHA-256：`244209b5dbe01741d65458acba76a733e4ce57cc99663021c0c61bcd3462c151`
 - 两个产物均因未配置 `signingConfigs` 而跳过签名。
 - `ohosTest` 仅完成编译打包，尚未在设备执行。
 
