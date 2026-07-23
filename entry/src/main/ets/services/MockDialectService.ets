@@ -13,7 +13,7 @@ export function clampScore(score: number): number {
   return Math.max(MIN_SCORE, Math.min(MAX_SCORE, Math.round(score)));
 }
 
-export function getMapMarkers(): ReadonlyArray<MapMarker> {
+export function getMapMarkers(): MapMarker[] {
   return [
     {
       id: 'sichuan',
@@ -50,7 +50,7 @@ export function getMapMarkers(): ReadonlyArray<MapMarker> {
   ];
 }
 
-export function getFellowUsers(): ReadonlyArray<FellowUser> {
+export function getFellowUsers(): FellowUser[] {
   return [
     {
       id: 'user-xiaoman',
@@ -124,9 +124,9 @@ export function getFellowUsers(): ReadonlyArray<FellowUser> {
 }
 
 export function filterFellowsBySource(
-  users: ReadonlyArray<FellowUser>,
+  users: FellowUser[],
   source: FellowSource
-): ReadonlyArray<FellowUser> {
+): FellowUser[] {
   return users.filter((user: FellowUser): boolean => user.source === source);
 }
 
@@ -161,4 +161,3 @@ export function createPassport(
     isCurrentUser: isCurrentUser
   };
 }
-
