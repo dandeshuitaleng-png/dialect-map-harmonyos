@@ -17,6 +17,8 @@ export interface MapMarker {
   readonly regionName: string;
   readonly dialectName: string;
   readonly fellowCount: number;
+  readonly latitude: number;
+  readonly longitude: number;
   readonly xRatio: number;
   readonly yRatio: number;
 }
@@ -63,4 +65,3 @@ export interface VoicePassport {
   readonly followers: number;
   readonly isCurrentUser: boolean;
 }
-

@@ -20,6 +20,8 @@ export function getMapMarkers(): MapMarker[] {
       regionName: '四川',
       dialectName: '四川话',
       fellowCount: 87000,
+      latitude: 30.5728,
+      longitude: 104.0668,
       xRatio: 0.36,
       yRatio: 0.53
     },
@@ -28,6 +30,8 @@ export function getMapMarkers(): MapMarker[] {
       regionName: '广东',
       dialectName: '粤语',
       fellowCount: 54000,
+      latitude: 23.1291,
+      longitude: 113.2644,
       xRatio: 0.57,
       yRatio: 0.72
     },
@@ -36,6 +40,8 @@ export function getMapMarkers(): MapMarker[] {
       regionName: '上海',
       dialectName: '上海话',
       fellowCount: 36000,
+      latitude: 31.2304,
+      longitude: 121.4737,
       xRatio: 0.76,
       yRatio: 0.5
     },
@@ -44,6 +50,8 @@ export function getMapMarkers(): MapMarker[] {
       regionName: '北京',
       dialectName: '北京话',
       fellowCount: 41000,
+      latitude: 39.9042,
+      longitude: 116.4074,
       xRatio: 0.65,
       yRatio: 0.29
     }

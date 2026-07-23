@@ -1,4 +1,4 @@
-import { DialectMap } from '../components/DialectMap';
+import { HarmonyDialectMap } from '../components/HarmonyDialectMap';
 import { FellowPanel } from '../components/FellowPanel';
 import { VoicePassportPage } from '../components/VoicePassportPage';
 import { VoiceAssessmentPage } from '../components/VoiceAssessmentPage';
@@ -75,7 +75,7 @@ struct Index {
   @Builder
   private compactHome() {
     Stack({ alignContent: Alignment.BottomEnd }) {
-      DialectMap({ markers: this.markers })
+      HarmonyDialectMap({ markers: this.markers })
 
       this.assessmentButton(20, 330)
 
@@ -97,7 +97,7 @@ struct Index {
   private wideHome() {
     Row() {
       Stack({ alignContent: Alignment.BottomEnd }) {
-        DialectMap({ markers: this.markers })
+        HarmonyDialectMap({ markers: this.markers })
         this.assessmentButton(24, 24)
       }
       .layoutWeight(5)
