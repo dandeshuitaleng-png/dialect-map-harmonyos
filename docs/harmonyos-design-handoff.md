@@ -4,6 +4,13 @@
 > 日期：2026-07-23  
 > 设计依据：`harmonyos-app-design` 技能、HarmonyOS 设计 Token、控件目录及设备/系统载体规范。
 
+### 本地设计资源
+
+- 多端组件参考：`/Users/bjl/Desktop/手机折叠屏平板-SKETCH/HarmonyOS Component Library.sketch`。
+- 字体参考：`/Users/bjl/Desktop/HarmonyOS Sans/`。
+- 当前实现使用 HarmonyOS 系统字体，不把本地 TTF 复制进 HAP，从而避免重复增加约 31MB 字体资源，并继续响应系统字体缩放。
+- 若未来确需嵌入 HarmonyOS Sans，必须使用未修改字体，保留 `LICENSE-update.txt`，并在软件中显著声明字体使用情况。
+
 ## 1. 任务摘要
 
 - 任务模式：完整设计。
@@ -232,6 +239,7 @@
 其他视觉规则：
 
 - 系统字体使用 HarmonyOS Sans；支持系统字体缩放。
+- 手机、折叠屏和平板控件形态以本地 `HarmonyOS Component Library.sketch` 校准；Sketch 仅作为设计参考，不作为运行时资源打包。
 - 地图资源使用中心裁切但不得扭曲；失败时显示低对比占位、文字说明和“重新加载”。
 - Dark 模式保持地图层级，不直接把浅色图片高亮复制；地图需要单独暗色调色资源或运行时遮罩，实际性能待验证。
 - 应用图标需提交前景/背景两层 1024×1024px；当前 SVG 仅作工程占位，发布前必须替换。
