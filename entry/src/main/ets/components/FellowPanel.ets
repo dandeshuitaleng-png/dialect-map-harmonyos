@@ -153,7 +153,9 @@ export struct FellowPanel {
     }
     .width('100%')
     .height(this.wideMode ? '100%' :
-      (this.portraitTabletMode ? '42%' : (this.expanded ? '72%' : 315)))
+      (this.portraitTabletMode ?
+        (this.expanded ? '72%' : '42%') :
+        (this.expanded ? '72%' : 315)))
     .backgroundColor(PAPER)
     .borderRadius({ topLeft: 26, topRight: 26 })
     .shadow({ radius: 30, color: $r('app.color.shadow_soft'), offsetY: -8 })
