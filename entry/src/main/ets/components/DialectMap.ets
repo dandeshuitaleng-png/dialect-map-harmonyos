@@ -6,6 +6,7 @@ const ACCENT: ResourceColor = $r('app.color.accent');
 @Component
 export struct DialectMap {
   @Prop markers: MapMarker[];
+  @Prop litRegionName: string = '';
   @State mapScale: number = 1;
   @State offsetX: number = 0;
   @State offsetY: number = 0;
@@ -22,29 +23,16 @@ export struct DialectMap {
           .objectFit(ImageFit.Cover)
 
         ForEach(this.markers, (marker: MapMarker): void => {
-          DialectMarker({ marker: marker })
+          DialectMarker({
+            marker: marker,
+            isLit: marker.regionName === this.litRegionName
+          })
         }, (marker: MapMarker): string => marker.id)
       }
         .width('100%')
         .height('100%')
         .scale({ x: this.mapScale, y: this.mapScale })
         .translate({ x: this.offsetX, y: this.offsetY })
-
-      Column() {
-        Text('听见每一方水土')
-          .fontSize(12)
-          .fontColor($r('app.color.ink_secondary'))
-          .fontWeight(FontWeight.Medium)
-          .letterSpacing(1.2)
-        Text('乡音地图')
-          .fontSize(30)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(INK)
-          .margin({ top: 4 })
-      }
-      .alignItems(HorizontalAlign.Start)
-      .position({ x: 20, y: 16 })
-      .zIndex(3)
 
       Button({ type: ButtonType.Circle }) {
         Text('⌖').fontSize(24).fontColor(INK)
@@ -141,6 +129,7 @@ export struct DialectMap {
 @Component
 struct DialectMarker {
   @Prop marker: MapMarker;
+  @Prop isLit: boolean = false;
 
   build() {
     Column({ space: 4 }) {
@@ -153,11 +142,17 @@ struct DialectMarker {
       .width(34)
       .height(34)
       .borderRadius(17)
-      .backgroundColor(ACCENT)
+      .backgroundColor(this.isLit ? $r('app.color.confirm') : ACCENT)
       .border({ width: 3, color: $r('app.color.surface_primary') })
       .shadow({ radius: 14, color: $r('app.color.shadow_accent') })
 
       Column({ space: 1 }) {
+        if (this.isLit) {
+          Text('已点亮')
+            .fontSize(10)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.on_emphasis'))
+        }
         Text(this.marker.dialectName)
           .fontSize(12)
           .fontWeight(FontWeight.Bold)
@@ -178,6 +173,7 @@ struct DialectMarker {
     .translate({ x: -46, y: -28 })
     .zIndex(2)
     .accessibilityText(
+      (this.isLit ? '已点亮，' : '') +
       this.marker.regionName + '，' + this.marker.dialectName + '，' +
       this.formatCount(this.marker.fellowCount)
     )

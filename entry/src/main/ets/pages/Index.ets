@@ -1,3 +1,4 @@
+import { common } from '@kit.AbilityKit';
 import { HarmonyDialectMap } from '../components/HarmonyDialectMap';
 import { FellowPanel } from '../components/FellowPanel';
 import { VoicePassportPage } from '../components/VoicePassportPage';
@@ -5,11 +6,17 @@ import { VoiceAssessmentPage } from '../components/VoiceAssessmentPage';
 import { DialectAssessment, FellowSource, FellowUser, MapMarker } from '../models/DialectModels';
 import {
   createCurrentUserFromAssessment,
+  correctSimulatedAssessment,
   createPassport,
   createSimulatedAssessment,
   getFellowUsers,
   getMapMarkers
 } from '../services/MockDialectService';
+import {
+  loadPassportState,
+  savePassportState,
+  SavedPassportState
+} from '../services/PassportPersistenceService';
 
 @Entry
 @Component
@@ -20,10 +27,15 @@ struct Index {
   @State assessmentOpen: boolean = false;
   @State windowWidth: number = 360;
   @State windowHeight: number = 720;
+  @State litRegionName: string = '';
   @State currentUser: FellowUser =
     createCurrentUserFromAssessment(createSimulatedAssessment('四川', '四川话'));
   private readonly markers: MapMarker[] = getMapMarkers();
   private readonly users: FellowUser[] = getFellowUsers();
+
+  aboutToAppear(): void {
+    this.restorePassportState();
+  }
 
   build() {
     Stack() {
@@ -68,7 +80,10 @@ struct Index {
   @Builder
   private compactHome() {
     Stack({ alignContent: Alignment.BottomEnd }) {
-      HarmonyDialectMap({ markers: this.markers })
+      HarmonyDialectMap({
+        markers: this.markers,
+        litRegionName: this.litRegionName
+      })
 
       FellowPanel({
         users: this.users,
@@ -91,7 +106,10 @@ struct Index {
   private wideHome() {
     Row() {
       Stack() {
-        HarmonyDialectMap({ markers: this.markers })
+        HarmonyDialectMap({
+          markers: this.markers,
+          litRegionName: this.litRegionName
+        })
       }
       .layoutWeight(this.windowWidth >= 840 ? 7 : 3)
       .height('100%')
@@ -123,6 +141,8 @@ struct Index {
         onBack: (): void => { this.assessmentOpen = false; },
         onComplete: (assessment: DialectAssessment): void => {
           this.currentUser = createCurrentUserFromAssessment(assessment);
+          this.litRegionName = assessment.regionName;
+          this.persistPassportState(assessment);
           this.assessmentOpen = false;
           this.selectedUserId = this.currentUser.id;
         }
@@ -143,6 +163,32 @@ struct Index {
 
   private isWideLayout(): boolean {
     return this.windowWidth >= 840 && this.windowWidth > this.windowHeight;
+  }
+
+  private async restorePassportState(): Promise<void> {
+    const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+    const savedState: SavedPassportState | undefined = await loadPassportState(context);
+    if (savedState === undefined) {
+      return;
+    }
+
+    const baseAssessment = createSimulatedAssessment(
+      savedState.regionName,
+      savedState.dialectName
+    );
+    const restoredAssessment = correctSimulatedAssessment(
+      baseAssessment,
+      savedState.regionName,
+      savedState.dialectName,
+      savedState.dialectBranch
+    );
+    this.currentUser = createCurrentUserFromAssessment(restoredAssessment);
+    this.litRegionName = savedState.regionName;
+  }
+
+  private async persistPassportState(assessment: DialectAssessment): Promise<void> {
+    const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+    await savePassportState(context, assessment);
   }
 
   private isPortraitTablet(): boolean {

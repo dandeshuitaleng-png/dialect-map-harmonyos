@@ -13,6 +13,7 @@ import { DialectMap } from './DialectMap';
 @Component
 export struct HarmonyDialectMap {
   @Prop markers: MapMarker[];
+  @Prop litRegionName: string = '';
   @State mapReady: boolean = false;
   @State mapFailed: boolean = false;
   @State statusMessage: string = '正在连接 Map Kit';
@@ -65,7 +66,10 @@ export struct HarmonyDialectMap {
   build() {
     Stack({ alignContent: Alignment.Center }) {
       if (this.mapFailed) {
-        DialectMap({ markers: this.markers })
+        DialectMap({
+          markers: this.markers,
+          litRegionName: this.litRegionName
+        })
       } else {
         MapComponent({
           mapOptions: this.mapOptions,
@@ -131,12 +135,14 @@ export struct HarmonyDialectMap {
             longitude: marker.longitude
           },
           title: marker.dialectName,
-          snippet: marker.regionName + ' · ' + this.formatCount(marker.fellowCount),
-          icon: $r('app.media.dialect_marker'),
+          snippet: (marker.regionName === this.litRegionName ? '已点亮 · ' : '') +
+            marker.regionName + ' · ' + this.formatCount(marker.fellowCount),
+          icon: marker.regionName === this.litRegionName ?
+            $r('app.media.dialect_marker_lit') : $r('app.media.dialect_marker'),
           clickable: true,
           draggable: false,
           visible: true,
-          zIndex: index + 1,
+          zIndex: marker.regionName === this.litRegionName ? 100 : index + 1,
           alpha: 1,
           anchorU: 0.5,
           anchorV: 1,
