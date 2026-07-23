@@ -1,11 +1,11 @@
 import { DialectAssessment, RecordingState } from '../models/DialectModels';
 import { createSimulatedAssessment } from '../services/MockDialectService';
 
-const PAPER: string = '#F4EFE5';
-const INK: string = '#173A32';
-const MUTED: string = '#6D7771';
-const ACCENT: string = '#DB643D';
-const GREEN: string = '#2F7766';
+const PAPER: ResourceColor = $r('app.color.background_page');
+const INK: ResourceColor = $r('app.color.ink_primary');
+const MUTED: ResourceColor = $r('app.color.ink_muted');
+const ACCENT: ResourceColor = $r('app.color.accent');
+const GREEN: ResourceColor = $r('app.color.confirm');
 
 @Component
 export struct VoiceAssessmentPage {
@@ -22,10 +22,11 @@ export struct VoiceAssessmentPage {
         Button({ type: ButtonType.Circle }) {
           Text('‹').fontSize(28).fontColor(INK)
         }
-        .width(42)
-        .height(42)
-        .backgroundColor('#FFFDF8')
+        .width(48)
+        .height(48)
+        .backgroundColor($r('app.color.surface_primary'))
         .onClick(this.onBack)
+        .accessibilityText('返回乡音地图')
         Blank()
         Text('录音鉴定')
           .fontSize(20)
@@ -33,10 +34,10 @@ export struct VoiceAssessmentPage {
           .fontColor(INK)
         Blank()
         Text('模拟')
-          .fontSize(10)
+          .fontSize(12)
           .fontWeight(FontWeight.Bold)
           .fontColor(ACCENT)
-          .backgroundColor('#FFEDE2')
+          .backgroundColor($r('app.color.surface_accent_soft'))
           .borderRadius(7)
           .padding({ left: 8, right: 8, top: 5, bottom: 5 })
       }
@@ -50,7 +51,7 @@ export struct VoiceAssessmentPage {
       }
 
       Text('演示流程：不会调用麦克风，也不代表真实 AI 方言鉴定。')
-        .fontSize(10)
+        .fontSize(12)
         .fontColor(MUTED)
         .textAlign(TextAlign.Center)
         .width('100%')
@@ -66,7 +67,7 @@ export struct VoiceAssessmentPage {
     Column() {
       Column({ space: 10 }) {
         Text(this.stepEyebrow())
-          .fontSize(11)
+          .fontSize(12)
           .fontColor(ACCENT)
           .fontWeight(FontWeight.Bold)
           .letterSpacing(1)
@@ -86,7 +87,8 @@ export struct VoiceAssessmentPage {
         Circle()
           .width(this.recordingState === RecordingState.RECORDING ? 154 : 130)
           .height(this.recordingState === RecordingState.RECORDING ? 154 : 130)
-          .fill(this.recordingState === RecordingState.RECORDING ? '#F8D9CA' : '#E9E2D7')
+          .fill(this.recordingState === RecordingState.RECORDING ?
+            $r('app.color.surface_recording') : $r('app.color.surface_disabled'))
         Circle()
           .width(104)
           .height(104)
@@ -94,7 +96,7 @@ export struct VoiceAssessmentPage {
         Text(this.recordingState === RecordingState.RECORDING ? '00:14' : '声')
           .fontSize(this.recordingState === RecordingState.RECORDING ? 20 : 26)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#FFFFFF')
+          .fontColor($r('app.color.on_emphasis'))
       }
       .width(180)
       .height(180)
@@ -109,7 +111,7 @@ export struct VoiceAssessmentPage {
               .fontColor(MUTED)
             Blank()
             Text('00:14')
-              .fontSize(11)
+              .fontSize(12)
               .fontColor(MUTED)
           }
           .width('100%')
@@ -120,11 +122,11 @@ export struct VoiceAssessmentPage {
           })
             .height(5)
             .color(this.recordingState === RecordingState.ASSESSING ? GREEN : ACCENT)
-            .backgroundColor('#E2DDD3')
+            .backgroundColor($r('app.color.divider'))
         }
         .padding(18)
         .width('100%')
-        .backgroundColor('#FFFDF8')
+        .backgroundColor($r('app.color.surface_primary'))
         .borderRadius(16)
         .margin({ top: 22 })
       }
@@ -136,7 +138,7 @@ export struct VoiceAssessmentPage {
         .height(50)
         .fontSize(15)
         .fontWeight(FontWeight.Bold)
-        .fontColor('#FFFFFF')
+        .fontColor($r('app.color.on_emphasis'))
         .backgroundColor(this.recordingState === RecordingState.ASSESSING ? GREEN : ACCENT)
         .borderRadius(14)
         .onClick((): void => { this.advance(); })
@@ -152,7 +154,7 @@ export struct VoiceAssessmentPage {
       Column({ space: 14 }) {
         Column({ space: 9 }) {
           Text('模拟鉴定完成')
-            .fontSize(11)
+            .fontSize(12)
             .fontColor(GREEN)
             .fontWeight(FontWeight.Bold)
             .letterSpacing(1)
@@ -172,7 +174,7 @@ export struct VoiceAssessmentPage {
             value: this.assessment.confidence,
             color: ACCENT
           })
-          Divider().color('#E8E2D8')
+          Divider().color($r('app.color.divider'))
           AssessmentMetric({
             label: '乡音保留度',
             value: this.assessment.retention,
@@ -180,13 +182,13 @@ export struct VoiceAssessmentPage {
           })
         }
         .padding(20)
-        .backgroundColor('#FFFDF8')
+        .backgroundColor($r('app.color.surface_primary'))
         .borderRadius(18)
-        .border({ width: 1, color: '#E7E1D7' })
+        .border({ width: 1, color: $r('app.color.border') })
 
         Column({ space: 10 }) {
           Text('即将点亮')
-            .fontSize(11)
+            .fontSize(12)
             .fontColor(MUTED)
             .width('100%')
           Row() {
@@ -196,21 +198,21 @@ export struct VoiceAssessmentPage {
               .fontColor(INK)
             Blank()
             Text('乡音地区')
-              .fontSize(11)
+              .fontSize(12)
               .fontColor(GREEN)
           }
           .width('100%')
         }
         .padding(18)
-        .backgroundColor('#EAF3EF')
+        .backgroundColor($r('app.color.surface_confirm_soft'))
         .borderRadius(16)
 
         Text('这是固定模拟数据，仅用于验证产品流程。真实鉴定需另行接入模型、隐私授权与内容审核。')
-          .fontSize(11)
+          .fontSize(12)
           .fontColor(MUTED)
           .lineHeight(18)
           .padding(14)
-          .backgroundColor('#EFECE5')
+          .backgroundColor($r('app.color.surface_muted'))
           .borderRadius(12)
 
         Button('点亮四川并生成乡音护照')
@@ -218,7 +220,7 @@ export struct VoiceAssessmentPage {
           .height(50)
           .fontSize(15)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#FFFFFF')
+          .fontColor($r('app.color.on_emphasis'))
           .backgroundColor(ACCENT)
           .borderRadius(14)
           .margin({ top: 8, bottom: 24 })
@@ -306,7 +308,7 @@ export struct VoiceAssessmentPage {
 struct AssessmentMetric {
   @Prop label: string;
   @Prop value: number;
-  @Prop color: string;
+  @Prop color: ResourceColor;
 
   build() {
     Row() {
@@ -325,9 +327,8 @@ struct AssessmentMetric {
         .width(58)
         .height(58)
         .color(this.color)
-        .backgroundColor('#E8E3DA')
+        .backgroundColor($r('app.color.divider'))
     }
     .width('100%')
   }
 }
-

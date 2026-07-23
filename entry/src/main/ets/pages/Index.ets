@@ -11,7 +11,7 @@ import {
   getMapMarkers
 } from '../services/MockDialectService';
 
-const ACCENT: string = '#DB643D';
+const ACCENT: ResourceColor = $r('app.color.accent');
 
 @Entry
 @Component
@@ -53,21 +53,22 @@ struct Index {
           Row({ space: 7 }) {
             Text('●')
               .fontSize(12)
-              .fontColor('#FFFFFF')
+              .fontColor($r('app.color.on_emphasis'))
             Text('录音鉴定')
               .fontSize(14)
               .fontWeight(FontWeight.Bold)
-              .fontColor('#FFFFFF')
+              .fontColor($r('app.color.on_emphasis'))
           }
         }
-        .height(46)
+        .height(48)
         .padding({ left: 17, right: 17 })
         .backgroundColor(ACCENT)
         .borderRadius(23)
-        .shadow({ radius: 20, color: 'rgba(147,61,34,0.30)' })
+        .shadow({ radius: 20, color: $r('app.color.shadow_accent') })
         .position({ x: 214, y: 356 })
         .zIndex(5)
         .onClick((): void => { this.assessmentOpen = true; })
+        .accessibilityText('开始模拟乡音录音鉴定')
 
         FellowPanel({
           users: this.users,
@@ -79,7 +80,7 @@ struct Index {
       }
       .width('100%')
       .height('100%')
-      .backgroundColor('#DDE5DC')
+      .backgroundColor($r('app.color.background_map'))
     }
   }
 

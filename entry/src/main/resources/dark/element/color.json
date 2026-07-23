@@ -2,67 +2,67 @@
   "color": [
     {
       "name": "start_window_background",
-      "value": "#F4EFE5"
+      "value": "#171A18"
     },
     {
       "name": "background_page",
-      "value": "#F4EFE5"
+      "value": "#171A18"
     },
     {
       "name": "background_map",
-      "value": "#DDE5DC"
+      "value": "#202823"
     },
     {
       "name": "surface_primary",
-      "value": "#FFFCF6"
+      "value": "#202422"
     },
     {
       "name": "surface_pure",
-      "value": "#FFFFFF"
+      "value": "#252A27"
     },
     {
       "name": "surface_muted",
-      "value": "#F1EEE7"
+      "value": "#303532"
     },
     {
       "name": "surface_accent_soft",
-      "value": "#FFF0E6"
+      "value": "#472A22"
     },
     {
       "name": "surface_confirm_soft",
-      "value": "#EAF3EF"
+      "value": "#1E3932"
     },
     {
       "name": "surface_disabled",
-      "value": "#E9E2D7"
+      "value": "#343A36"
     },
     {
       "name": "surface_recording",
-      "value": "#F8D9CA"
+      "value": "#563126"
     },
     {
       "name": "ink_primary",
-      "value": "#173A32"
+      "value": "#E6F2ED"
     },
     {
       "name": "ink_secondary",
-      "value": "#556A61"
+      "value": "#B8C9C1"
     },
     {
       "name": "ink_muted",
-      "value": "#6D7771"
+      "value": "#AAB5B0"
     },
     {
       "name": "ink_tertiary",
-      "value": "#9BA49F"
+      "value": "#87928D"
     },
     {
       "name": "accent",
-      "value": "#DB643D"
+      "value": "#F07A52"
     },
     {
       "name": "confirm",
-      "value": "#2F7766"
+      "value": "#72B6A3"
     },
     {
       "name": "on_emphasis",
@@ -70,47 +70,47 @@
     },
     {
       "name": "on_emphasis_secondary",
-      "value": "#E7F0EC"
+      "value": "#DCEAE4"
     },
     {
       "name": "divider",
-      "value": "#E3DED4"
+      "value": "#4DFFFFFF"
     },
     {
       "name": "border",
-      "value": "#E9E3D9"
+      "value": "#3DFFFFFF"
     },
     {
       "name": "focus",
-      "value": "#0A59F7"
+      "value": "#317AF7"
     },
     {
       "name": "map_overlay",
-      "value": "#B815372E"
+      "value": "#CC10251F"
     },
     {
       "name": "shadow_soft",
-      "value": "#2E1F4B40"
+      "value": "#66000000"
     },
     {
       "name": "shadow_accent",
-      "value": "#4D933D22"
+      "value": "#80401911"
     },
     {
       "name": "avatar_cantonese",
-      "value": "#3A7D6E"
+      "value": "#4E9A89"
     },
     {
       "name": "avatar_shanghai",
-      "value": "#547CAD"
+      "value": "#6C92C2"
     },
     {
       "name": "avatar_beijing",
-      "value": "#9D624E"
+      "value": "#B77963"
     },
     {
       "name": "avatar_default",
-      "value": "#D88755"
+      "value": "#E19A6B"
     }
   ]
 }

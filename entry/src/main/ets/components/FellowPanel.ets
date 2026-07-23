@@ -1,10 +1,10 @@
 import { FellowSource, FellowUser } from '../models/DialectModels';
 import { filterFellowsBySource } from '../services/MockDialectService';
 
-const PAPER: string = '#FFFCF6';
-const INK: string = '#173A32';
-const MUTED: string = '#6D7771';
-const ACCENT: string = '#DB643D';
+const PAPER: ResourceColor = $r('app.color.surface_primary');
+const INK: ResourceColor = $r('app.color.ink_primary');
+const MUTED: ResourceColor = $r('app.color.ink_muted');
+const ACCENT: ResourceColor = $r('app.color.accent');
 
 @Component
 export struct FellowPanel {
@@ -21,7 +21,7 @@ export struct FellowPanel {
           Divider()
             .width(38)
             .strokeWidth(4)
-            .color('#CCD2CE')
+            .color($r('app.color.ink_tertiary'))
             .borderRadius(2)
         }
         .height(24)
@@ -35,7 +35,7 @@ export struct FellowPanel {
               .fontWeight(FontWeight.Bold)
               .fontColor(INK)
             Text('地图上的声音，正在靠近')
-              .fontSize(11)
+              .fontSize(12)
               .fontColor(MUTED)
           }
           .alignItems(HorizontalAlign.Start)
@@ -43,7 +43,10 @@ export struct FellowPanel {
           Text(this.expanded ? '收起' : '展开')
             .fontSize(12)
             .fontColor(ACCENT)
+            .height(48)
+            .padding({ left: 12, right: 12 })
             .onClick((): void => { this.expanded = !this.expanded; })
+            .accessibilityText(this.expanded ? '收起同乡面板' : '展开同乡面板')
         }
         .width('100%')
         .padding({ left: 20, right: 20, bottom: 14 })
@@ -100,7 +103,7 @@ export struct FellowPanel {
     .height(this.expanded ? '72%' : 315)
     .backgroundColor(PAPER)
     .borderRadius({ topLeft: 26, topRight: 26 })
-    .shadow({ radius: 30, color: 'rgba(25,55,47,0.18)', offsetY: -8 })
+    .shadow({ radius: 30, color: $r('app.color.shadow_soft'), offsetY: -8 })
   }
 
   private visibleUsers(): FellowUser[] {
@@ -118,13 +121,14 @@ struct SourceTab {
     Text(this.label)
       .fontSize(12)
       .fontWeight(this.selected ? FontWeight.Bold : FontWeight.Medium)
-      .fontColor(this.selected ? '#FFFFFF' : MUTED)
+      .fontColor(this.selected ? $r('app.color.on_emphasis') : MUTED)
       .textAlign(TextAlign.Center)
-      .height(34)
+      .height(48)
       .layoutWeight(1)
-      .backgroundColor(this.selected ? INK : '#F1EEE7')
+      .backgroundColor(this.selected ? INK : $r('app.color.surface_muted'))
       .borderRadius(10)
       .onClick(this.onSelect)
+      .accessibilityText(this.label + (this.selected ? '，已选中' : ''))
   }
 }
 
@@ -139,7 +143,7 @@ struct FellowCard {
         Text(this.user.initials)
           .fontSize(16)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#FFFFFF')
+          .fontColor($r('app.color.on_emphasis'))
       }
       .width(44)
       .height(44)
@@ -153,15 +157,15 @@ struct FellowCard {
             .fontWeight(FontWeight.Bold)
             .fontColor(INK)
           Text(this.user.dialectName)
-            .fontSize(10)
+            .fontSize(12)
             .fontColor(ACCENT)
-            .backgroundColor('#FFF0E6')
+            .backgroundColor($r('app.color.surface_accent_soft'))
             .borderRadius(6)
             .padding({ left: 6, right: 6, top: 3, bottom: 3 })
             .margin({ left: 8 })
         }
         Text(this.user.location + ' · ' + this.user.distanceText)
-          .fontSize(11)
+          .fontSize(12)
           .fontColor(MUTED)
           .maxLines(1)
       }
@@ -170,26 +174,30 @@ struct FellowCard {
 
       Text('›')
         .fontSize(24)
-        .fontColor('#9BA49F')
+        .fontColor($r('app.color.ink_tertiary'))
     }
     .width('100%')
     .padding(14)
-    .backgroundColor('#FFFFFF')
+    .backgroundColor($r('app.color.surface_pure'))
     .borderRadius(14)
-    .border({ width: 1, color: '#ECE9E1' })
+    .border({ width: 1, color: $r('app.color.border') })
     .onClick((): void => { this.onOpen(this.user.id); })
+    .accessibilityText(
+      this.user.nickname + '，' + this.user.dialectName + '，' +
+      this.user.location + '，查看乡音护照'
+    )
   }
 
-  private avatarColor(): string {
+  private avatarColor(): ResourceColor {
     if (this.user.dialectName === '粤语') {
-      return '#3A7D6E';
+      return $r('app.color.avatar_cantonese');
     }
     if (this.user.dialectName === '上海话') {
-      return '#547CAD';
+      return $r('app.color.avatar_shanghai');
     }
     if (this.user.dialectName === '北京话') {
-      return '#9D624E';
+      return $r('app.color.avatar_beijing');
     }
-    return '#D88755';
+    return $r('app.color.avatar_default');
   }
 }

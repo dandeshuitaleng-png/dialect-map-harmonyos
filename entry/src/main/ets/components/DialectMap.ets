@@ -1,8 +1,8 @@
 import { MapMarker } from '../models/DialectModels';
 
-const INK: string = '#173A32';
-const SURFACE: string = '#FFFCF6';
-const ACCENT: string = '#DB643D';
+const INK: ResourceColor = $r('app.color.ink_primary');
+const SURFACE: ResourceColor = $r('app.color.surface_primary');
+const ACCENT: ResourceColor = $r('app.color.accent');
 const MAP_WIDTH: number = 360;
 const MAP_HEIGHT: number = 700;
 
@@ -35,8 +35,8 @@ export struct DialectMap {
 
       Column() {
         Text('听见每一方水土')
-          .fontSize(11)
-          .fontColor('#556A61')
+          .fontSize(12)
+          .fontColor($r('app.color.ink_secondary'))
           .fontWeight(FontWeight.Medium)
           .letterSpacing(1.2)
         Text('乡音地图')
@@ -50,28 +50,29 @@ export struct DialectMap {
       .zIndex(3)
 
       Button({ type: ButtonType.Circle }) {
-        Text('⌖').fontSize(22).fontColor(INK)
+        Text('⌖').fontSize(24).fontColor(INK)
       }
-      .width(44)
-      .height(44)
+      .width(48)
+      .height(48)
       .backgroundColor(SURFACE)
       .position({ x: 296, y: 52 })
       .zIndex(3)
-      .shadow({ radius: 16, color: 'rgba(31,75,64,0.18)' })
+      .shadow({ radius: 16, color: $r('app.color.shadow_soft') })
+      .accessibilityText('恢复地图初始位置')
       .onClick((): void => { this.resetViewport(); })
 
       Row() {
         Text('单指拖动 · 双指缩放')
-          .fontSize(10)
-          .fontColor('#F5F8F5')
+          .fontSize(12)
+          .fontColor($r('app.color.on_emphasis'))
         Blank()
         Text(Math.round(this.mapScale * 100).toString() + '%')
-          .fontSize(10)
-          .fontColor('#F5F8F5')
+          .fontSize(12)
+          .fontColor($r('app.color.on_emphasis'))
       }
       .height(32)
       .padding({ left: 12, right: 12 })
-      .backgroundColor('rgba(21,55,46,0.72)')
+      .backgroundColor($r('app.color.map_overlay'))
       .borderRadius(10)
       .position({ x: 20, y: 112 })
       .width(200)
@@ -122,28 +123,28 @@ struct DialectMarker {
     Column({ space: 4 }) {
       Stack() {
         Text('声')
-          .fontSize(11)
-          .fontColor('#FFFFFF')
+          .fontSize(12)
+          .fontColor($r('app.color.on_emphasis'))
           .fontWeight(FontWeight.Bold)
       }
       .width(34)
       .height(34)
       .borderRadius(17)
       .backgroundColor(ACCENT)
-      .border({ width: 3, color: '#FFF8EE' })
-      .shadow({ radius: 14, color: 'rgba(151,68,42,0.35)' })
+      .border({ width: 3, color: $r('app.color.surface_primary') })
+      .shadow({ radius: 14, color: $r('app.color.shadow_accent') })
 
       Column({ space: 1 }) {
         Text(this.marker.dialectName)
-          .fontSize(11)
+          .fontSize(12)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#FFFFFF')
+          .fontColor($r('app.color.on_emphasis'))
         Text(this.formatCount(this.marker.fellowCount))
-          .fontSize(8)
-          .fontColor('#E7F0EC')
+          .fontSize(12)
+          .fontColor($r('app.color.on_emphasis_secondary'))
       }
       .padding({ left: 7, right: 7, top: 4, bottom: 4 })
-      .backgroundColor('rgba(20,51,43,0.78)')
+      .backgroundColor($r('app.color.map_overlay'))
       .borderRadius(8)
     }
     .width(92)
@@ -153,6 +154,10 @@ struct DialectMarker {
     })
     .translate({ x: -46, y: -28 })
     .zIndex(2)
+    .accessibilityText(
+      this.marker.regionName + '，' + this.marker.dialectName + '，' +
+      this.formatCount(this.marker.fellowCount)
+    )
   }
 
   private formatCount(count: number): string {
