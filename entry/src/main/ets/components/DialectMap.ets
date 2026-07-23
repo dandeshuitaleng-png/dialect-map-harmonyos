@@ -3,9 +3,6 @@ import { MapMarker } from '../models/DialectModels';
 const INK: ResourceColor = $r('app.color.ink_primary');
 const SURFACE: ResourceColor = $r('app.color.surface_primary');
 const ACCENT: ResourceColor = $r('app.color.accent');
-const MAP_WIDTH: number = 360;
-const MAP_HEIGHT: number = 700;
-
 @Component
 export struct DialectMap {
   @Prop markers: MapMarker[];
@@ -20,16 +17,16 @@ export struct DialectMap {
     Stack({ alignContent: Alignment.TopStart }) {
       Stack({ alignContent: Alignment.TopStart }) {
         Image($rawfile('china-terrain-map.png'))
-          .width(MAP_WIDTH)
-          .height(MAP_HEIGHT)
+          .width('100%')
+          .height('100%')
           .objectFit(ImageFit.Cover)
 
         ForEach(this.markers, (marker: MapMarker): void => {
           DialectMarker({ marker: marker })
         }, (marker: MapMarker): string => marker.id)
       }
-        .width(MAP_WIDTH)
-        .height(MAP_HEIGHT)
+        .width('100%')
+        .height('100%')
         .scale({ x: this.mapScale, y: this.mapScale })
         .translate({ x: this.offsetX, y: this.offsetY })
 
@@ -46,7 +43,7 @@ export struct DialectMap {
           .margin({ top: 4 })
       }
       .alignItems(HorizontalAlign.Start)
-      .position({ x: 20, y: 48 })
+      .position({ x: 20, y: 16 })
       .zIndex(3)
 
       Button({ type: ButtonType.Circle }) {
@@ -55,7 +52,7 @@ export struct DialectMap {
       .width(48)
       .height(48)
       .backgroundColor(SURFACE)
-      .position({ x: 296, y: 52 })
+      .position({ x: '82%', y: 16 })
       .zIndex(3)
       .shadow({ radius: 16, color: $r('app.color.shadow_soft') })
       .accessibilityText('恢复地图初始位置')
@@ -74,9 +71,31 @@ export struct DialectMap {
       .padding({ left: 12, right: 12 })
       .backgroundColor($r('app.color.map_overlay'))
       .borderRadius(10)
-      .position({ x: 20, y: 112 })
-      .width(200)
+      .position({ x: 20, y: 76 })
+      .width(224)
       .zIndex(3)
+
+      Button('-')
+        .width(48)
+        .height(48)
+        .fontSize(24)
+        .fontColor(INK)
+        .backgroundColor(SURFACE)
+        .position({ x: 20, y: 124 })
+        .zIndex(3)
+        .onClick((): void => { this.zoomBy(-0.2); })
+        .accessibilityText('缩小地图')
+
+      Button('+')
+        .width(48)
+        .height(48)
+        .fontSize(24)
+        .fontColor(INK)
+        .backgroundColor(SURFACE)
+        .position({ x: 76, y: 124 })
+        .zIndex(3)
+        .onClick((): void => { this.zoomBy(0.2); })
+        .accessibilityText('放大地图')
     }
     .width('100%')
     .height('100%')
@@ -108,6 +127,10 @@ export struct DialectMap {
     this.mapScale = 1;
     this.offsetX = 0;
     this.offsetY = 0;
+  }
+
+  private zoomBy(delta: number): void {
+    this.mapScale = this.clampScale(this.mapScale + delta);
   }
 
   private clampScale(scale: number): number {

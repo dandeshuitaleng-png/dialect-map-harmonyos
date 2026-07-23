@@ -9,6 +9,7 @@ const ACCENT: ResourceColor = $r('app.color.accent');
 @Component
 export struct FellowPanel {
   @Prop users: FellowUser[];
+  @Prop wideMode: boolean = false;
   @Link expanded: boolean;
   @Link selectedSource: FellowSource;
   onOpenUser: (userId: string) => void = (_userId: string): void => {};
@@ -40,11 +41,12 @@ export struct FellowPanel {
           }
           .alignItems(HorizontalAlign.Start)
           Blank()
-          Text(this.expanded ? '收起' : '展开')
+          Button(this.expanded ? '收起' : '展开')
             .fontSize(12)
             .fontColor(ACCENT)
             .height(48)
             .padding({ left: 12, right: 12 })
+            .backgroundColor(Color.Transparent)
             .onClick((): void => { this.expanded = !this.expanded; })
             .accessibilityText(this.expanded ? '收起同乡面板' : '展开同乡面板')
         }
@@ -100,7 +102,7 @@ export struct FellowPanel {
       .scrollBar(BarState.Off)
     }
     .width('100%')
-    .height(this.expanded ? '72%' : 315)
+    .height(this.wideMode ? '100%' : (this.expanded ? '72%' : 315))
     .backgroundColor(PAPER)
     .borderRadius({ topLeft: 26, topRight: 26 })
     .shadow({ radius: 30, color: $r('app.color.shadow_soft'), offsetY: -8 })
@@ -118,11 +120,10 @@ struct SourceTab {
   onSelect: () => void = (): void => {};
 
   build() {
-    Text(this.label)
+    Button(this.label)
       .fontSize(12)
       .fontWeight(this.selected ? FontWeight.Bold : FontWeight.Medium)
       .fontColor(this.selected ? $r('app.color.on_emphasis') : MUTED)
-      .textAlign(TextAlign.Center)
       .height(48)
       .layoutWeight(1)
       .backgroundColor(this.selected ? INK : $r('app.color.surface_muted'))

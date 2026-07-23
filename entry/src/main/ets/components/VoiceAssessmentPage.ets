@@ -42,7 +42,7 @@ export struct VoiceAssessmentPage {
           .padding({ left: 8, right: 8, top: 5, bottom: 5 })
       }
       .width('100%')
-      .padding({ left: 18, right: 18, top: 42, bottom: 18 })
+      .padding({ left: 18, right: 18, top: 16, bottom: 18 })
 
       if (this.recordingState === RecordingState.RESULT) {
         this.resultContent()

@@ -46,7 +46,7 @@ export struct VoicePassportPage {
         .accessibilityText('分享个人乡音名片')
       }
       .width('100%')
-      .padding({ left: 18, right: 18, top: 42, bottom: 16 })
+      .padding({ left: 18, right: 18, top: 16, bottom: 16 })
 
       Scroll() {
         Column({ space: 14 }) {
