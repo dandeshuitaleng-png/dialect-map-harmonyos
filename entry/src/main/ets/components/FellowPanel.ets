@@ -10,6 +10,7 @@ const ACCENT: ResourceColor = $r('app.color.accent');
 export struct FellowPanel {
   @Prop users: FellowUser[];
   @Prop wideMode: boolean = false;
+  @Prop portraitTabletMode: boolean = false;
   @Link expanded: boolean;
   @Link selectedSource: FellowSource;
   onOpenUser: (userId: string) => void = (_userId: string): void => {};
@@ -151,7 +152,8 @@ export struct FellowPanel {
       .scrollBar(BarState.Off)
     }
     .width('100%')
-    .height(this.wideMode ? '100%' : (this.expanded ? '72%' : 315))
+    .height(this.wideMode ? '100%' :
+      (this.portraitTabletMode ? '42%' : (this.expanded ? '72%' : 315)))
     .backgroundColor(PAPER)
     .borderRadius({ topLeft: 26, topRight: 26 })
     .shadow({ radius: 30, color: $r('app.color.shadow_soft'), offsetY: -8 })

@@ -19,6 +19,7 @@ struct Index {
   @State selectedUserId: string = '';
   @State assessmentOpen: boolean = false;
   @State windowWidth: number = 360;
+  @State windowHeight: number = 720;
   @State currentUser: FellowUser =
     createCurrentUserFromAssessment(createSimulatedAssessment('四川', '四川话'));
   private readonly markers: MapMarker[] = getMapMarkers();
@@ -48,6 +49,7 @@ struct Index {
     .height('100%')
     .onAreaChange((_oldValue: Area, newValue: Area): void => {
       this.windowWidth = Number(newValue.width);
+      this.windowHeight = Number(newValue.height);
     })
   }
 
@@ -71,6 +73,7 @@ struct Index {
       FellowPanel({
         users: this.users,
         wideMode: false,
+        portraitTabletMode: this.isPortraitTablet(),
         expanded: $panelExpanded,
         selectedSource: $selectedSource,
         onOpenUser: (userId: string): void => { this.selectedUserId = userId; },
@@ -96,13 +99,14 @@ struct Index {
       FellowPanel({
         users: this.users,
         wideMode: true,
+        portraitTabletMode: false,
         expanded: $panelExpanded,
         selectedSource: $selectedSource,
         onOpenUser: (userId: string): void => { this.selectedUserId = userId; },
         onStartAssessment: (): void => { this.assessmentOpen = true; },
         onOpenPassport: (): void => { this.selectedUserId = this.currentUser.id; }
       })
-        .width(this.windowWidth >= 840 ? '30%' : '40%')
+        .width(this.windowWidth >= 1200 ? 400 : 360)
         .height('100%')
     }
     .width('100%')
@@ -138,7 +142,11 @@ struct Index {
   }
 
   private isWideLayout(): boolean {
-    return this.windowWidth >= 600;
+    return this.windowWidth >= 840 && this.windowWidth > this.windowHeight;
+  }
+
+  private isPortraitTablet(): boolean {
+    return this.windowWidth >= 600 && this.windowHeight >= this.windowWidth;
   }
 
   private selectedUser(): FellowUser | undefined {

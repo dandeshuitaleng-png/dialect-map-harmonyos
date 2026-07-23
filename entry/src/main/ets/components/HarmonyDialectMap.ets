@@ -27,7 +27,7 @@ export struct HarmonyDialectMap {
         latitude: 35.8617,
         longitude: 104.1954
       },
-      zoom: 4
+      zoom: 4.6
     },
     minZoom: 3,
     maxZoom: 18,
