@@ -129,10 +129,11 @@ export struct VoicePassportPage {
                   .fontSize(14)
                   .fontColor($r('app.color.on_emphasis'))
               }
-              .width(38)
-              .height(38)
+              .width(48)
+              .height(48)
               .backgroundColor(ACCENT)
               .onClick((): void => { this.voicePlaying = !this.voicePlaying; })
+              .accessibilityText(this.voicePlaying ? '暂停代表语音' : '播放代表语音')
               Column({ space: 5 }) {
                 Progress({
                   value: this.voicePlaying ? 62 : 0,
@@ -199,7 +200,8 @@ export struct VoicePassportPage {
             .fontColor($r('app.color.on_emphasis'))
             .backgroundColor(this.shareReady ? GREEN : INK)
             .borderRadius(14)
-            .onClick((): void => { this.shareReady = true; })
+          .onClick((): void => { this.shareReady = true; })
+          .accessibilityText(this.shareReady ? '乡音名片已准备' : '分享个人乡音名片')
         }
         .padding({ left: 18, right: 18, bottom: 36 })
         .width('100%')

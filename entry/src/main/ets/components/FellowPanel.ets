@@ -90,13 +90,29 @@ export struct FellowPanel {
       .width('100%')
 
       Scroll() {
-        Column({ space: 10 }) {
-          ForEach(this.visibleUsers(), (user: FellowUser): void => {
-            FellowCard({ user: user, onOpen: this.onOpenUser })
-          }, (user: FellowUser): string => user.id)
+        if (this.visibleUsers().length === 0) {
+          Column({ space: 12 }) {
+            Text('这里还没有可展示的同乡')
+              .fontSize(16)
+              .fontWeight(FontWeight.Bold)
+              .fontColor(INK)
+            Text('可以切换到推荐同乡，或录下第一段乡音。')
+              .fontSize(12)
+              .fontColor(MUTED)
+              .textAlign(TextAlign.Center)
+          }
+          .width('100%')
+          .padding({ left: 24, right: 24, top: 40, bottom: 40 })
+          .accessibilityGroup(true)
+        } else {
+          Column({ space: 10 }) {
+            ForEach(this.visibleUsers(), (user: FellowUser): void => {
+              FellowCard({ user: user, onOpen: this.onOpenUser })
+            }, (user: FellowUser): string => user.id)
+          }
+          .padding({ left: 20, right: 20, bottom: 32 })
+          .width('100%')
         }
-        .padding({ left: 20, right: 20, bottom: 32 })
-        .width('100%')
       }
       .layoutWeight(1)
       .scrollBar(BarState.Off)
@@ -136,6 +152,7 @@ struct SourceTab {
 @Component
 struct FellowCard {
   @Prop user: FellowUser;
+  @State focused: boolean = false;
   onOpen: (userId: string) => void = (_userId: string): void => {};
 
   build() {
@@ -181,8 +198,15 @@ struct FellowCard {
     .padding(14)
     .backgroundColor($r('app.color.surface_pure'))
     .borderRadius(14)
-    .border({ width: 1, color: $r('app.color.border') })
+    .border({
+      width: this.focused ? 2 : 1,
+      color: this.focused ? $r('app.color.focus') : $r('app.color.border')
+    })
     .onClick((): void => { this.onOpen(this.user.id); })
+    .focusable(true)
+    .onFocus((): void => { this.focused = true; })
+    .onBlur((): void => { this.focused = false; })
+    .accessibilityGroup(true)
     .accessibilityText(
       this.user.nickname + '，' + this.user.dialectName + '，' +
       this.user.location + '，查看乡音护照'

@@ -142,6 +142,7 @@ export struct VoiceAssessmentPage {
         .backgroundColor(this.recordingState === RecordingState.ASSESSING ? GREEN : ACCENT)
         .borderRadius(14)
         .onClick((): void => { this.advance(); })
+        .accessibilityText(this.primaryLabel())
     }
     .padding({ left: 20, right: 20, bottom: 18 })
     .layoutWeight(1)
