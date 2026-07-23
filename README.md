@@ -6,7 +6,7 @@
 
 ## 已实现
 
-- 全屏 Map Kit 全国地图，呈现四个真实经纬度乡音点位与同乡数量。
+- 全屏 Map Kit 全国地图，呈现五个真实经纬度乡音点位与同乡数量。
 - 支持地图拖动、双指缩放、比例尺和用户主动触发“我的位置”。
 - Map Kit 初始化或点位加载失败时自动切换本地地图，避免空白页面。
 - 手机使用地图与底部面板；宽窗口自动切换地图与同乡列表分栏。
@@ -24,7 +24,7 @@
 
 地图已接入 HarmonyOS Map Kit；工程声明联网权限，并只在用户点击“我的位置”后申请前台精确/模糊定位权限。拒绝或定位异常时仍可继续浏览地图，应用不记录或上传用户坐标。
 
-Map Kit 代码已通过 API 12 工程编译，但 AGC 中的 Map Kit 开通、应用身份、调试证书/Profile、签名和真机地图鉴权尚未完成，因此不能把当前状态描述为“在线地图已在设备运行”。Map Kit 初始化或点位添加报告失败时会回退本地地图；在线瓦片鉴权仍需真机验证。
+Map Kit 已在真机完成在线地图、3D 地球、手势、定位允许和镜头居中验证。Map Kit 初始化或点位添加报告失败时仍会回退本地地图；定位拒绝与系统设置恢复分支尚待完整复验。
 
 录音、方言鉴定和同乡数据仍为本地模拟。应用不申请麦克风权限，不连接 AI、后端或社交系统，也不保存真实录音。
 
@@ -55,7 +55,7 @@ JAVA_HOME=/Applications/DevEco-Studio.app/Contents/jbr/Contents/Home \
 assembleHap --no-daemon --stacktrace
 ```
 
-构建产物为 `entry/build/default/outputs/default/entry-default-unsigned.hap`。工程未配置签名，因此该产物是 unsigned HAP；构建成功不等同于已安装或已在设备运行。
+默认构建产物位于 `entry/build/default/outputs/default/`。配置本机 DevEco debug 签名时会生成 `entry-default-signed.hap`；个人签名材料不应纳入版本库。当前 signed HAP 已在真机覆盖安装并启动。
 
 测试 HAP 构建命令：
 
@@ -74,12 +74,10 @@ JAVA_HOME=/Applications/DevEco-Studio.app/Contents/jbr/Contents/Home \
 
 `cangjie-domain/` 遵循本机 CangjieSkills 的包、命名、不可变模型、`Option<T>` 和 `_test.cj` 约定。本机未安装 `cjc/cjpm`，因此仓颉代码尚未编译，也尚未接入 HAP。详情见 [cangjie-domain/README.md](cangjie-domain/README.md)。
 
-## 当前未验证
+## 当前未完整验证
 
-- Previewer 或真机上的手机、折叠宽窗、平板布局及手势表现。
+- 手机、折叠宽窗、自由窗口和全部响应式断点。
 - Dark 对比度、系统字体极限缩放、键鼠完整焦点链和读屏实测。
-- 主 HAP 的签名、安装和启动。
-- AGC Map Kit 开通、应用身份配置、调试证书/Profile 和真机地图鉴权。
-- 用户允许精确/模糊定位、拒绝定位及系统设置恢复后的真机表现。
+- 用户拒绝定位及系统设置恢复后的真机表现。
 - `ohosTest` 在设备上的实际执行。
 - 仓颉领域层的编译与测试。

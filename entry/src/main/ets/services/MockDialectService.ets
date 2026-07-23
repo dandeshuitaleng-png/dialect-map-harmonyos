@@ -26,6 +26,16 @@ export function getMapMarkers(): MapMarker[] {
       yRatio: 0.53
     },
     {
+      id: 'chongqing',
+      regionName: '重庆',
+      dialectName: '重庆话',
+      fellowCount: 62000,
+      latitude: 29.5630,
+      longitude: 106.5516,
+      xRatio: 0.42,
+      yRatio: 0.57
+    },
+    {
       id: 'guangdong',
       regionName: '广东',
       dialectName: '粤语',

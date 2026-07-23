@@ -19,7 +19,8 @@ export default function dialectModelsTests(): void {
     });
 
     it('returns deterministic map markers and three fellow sources', 0, (): void => {
-      expect(getMapMarkers().length).assertEqual(4);
+      expect(getMapMarkers().length).assertEqual(5);
+      expect(getMapMarkers()[1].regionName).assertEqual('重庆');
       expect(filterFellowsBySource(getFellowUsers(), FellowSource.NEARBY).length).assertEqual(1);
       expect(filterFellowsBySource(getFellowUsers(), FellowSource.RECOMMENDED).length).assertEqual(1);
       expect(filterFellowsBySource(getFellowUsers(), FellowSource.CURRENT_REGION).length).assertEqual(2);

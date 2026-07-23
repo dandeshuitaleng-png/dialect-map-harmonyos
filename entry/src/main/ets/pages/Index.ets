@@ -80,10 +80,7 @@ struct Index {
   @Builder
   private compactHome() {
     Stack({ alignContent: Alignment.BottomEnd }) {
-      HarmonyDialectMap({
-        markers: this.markers,
-        litRegionName: this.litRegionName
-      })
+      this.mapContent()
 
       FellowPanel({
         users: this.users,
@@ -107,10 +104,7 @@ struct Index {
   private wideHome() {
     Row() {
       Stack() {
-        HarmonyDialectMap({
-          markers: this.markers,
-          litRegionName: this.litRegionName
-        })
+        this.mapContent()
       }
       .layoutWeight(this.windowWidth >= 840 ? 7 : 3)
       .height('100%')
@@ -132,6 +126,21 @@ struct Index {
     .width('100%')
     .height('100%')
     .backgroundColor($r('app.color.background_map'))
+  }
+
+  @Builder
+  private mapContent() {
+    if (this.litRegionName.length > 0) {
+      HarmonyDialectMap({
+        markers: this.markers,
+        litRegionName: this.litRegionName
+      })
+    } else {
+      HarmonyDialectMap({
+        markers: this.markers,
+        litRegionName: ''
+      })
+    }
   }
 
   @Builder

@@ -7,27 +7,27 @@
 - `entry/src/main/module.json5` 只声明 Map Kit 联网所需的 `INTERNET`、`GET_NETWORK_INFO`，以及前台 `LOCATION`、`APPROXIMATELY_LOCATION`。
 - 定位权限只在用户点击“我的位置”后动态申请；拒绝或异常不阻断地图，同一次运行不循环请求。
 - 应用未声明麦克风权限，不记录或上传用户坐标。
-- `build-profile.json5` 未配置签名。
-- Map Kit 地图、手势、四个经纬度 Marker 与本地地图兜底已通过 ArkTS 编译；AGC 开通、应用身份、证书/Profile、签名与设备鉴权未验证。
+- 版本库不保存个人签名材料；本机 `build-profile.json5` 的用户签名配置未纳入提交。
+- Map Kit 地图、手势、五个经纬度 Marker 与本地地图兜底均已通过编译和真机复验。
 - 录音、鉴定和同乡数据仍为本地模拟。
 - 未硬编码 Client ID、Token、API Key、证书指纹、AI API、后端地址或用户隐私数据。
 
 ## 构建状态
 
 - 主 HAP：Hvigor `BUILD SUCCESSFUL`。
-  - 路径：`entry/build/default/outputs/default/entry-default-unsigned.hap`
-  - 大小：2,626,228 bytes
-  - SHA-256：`2e428e290e4449d7979f18119bfa03d1dc96b0063998ec9c66392187ab481584`
+  - 路径：`entry/build/default/outputs/default/entry-default-signed.hap`
+  - 大小：2,761,770 bytes
+  - SHA-256：`f7c6b193b19c7b2a311966121600198fbc308090a1cc99c4b5e676fa440fdef0`
 - `ohosTest` HAP：Hvigor `BUILD SUCCESSFUL`。
-  - 路径：`entry/build/default/outputs/ohosTest/entry-ohosTest-unsigned.hap`
-  - 大小：3,622,353 bytes
-  - SHA-256：`9cb0a49ec4e1815c1061ad21a390ff74467bf9ca184fb9db5b8584fed19aebed`
-- 两个产物均因未配置 `signingConfigs` 而跳过签名。
+  - 路径：`entry/build/default/outputs/ohosTest/entry-ohosTest-signed.hap`
+  - 大小：3,662,754 bytes
+  - SHA-256：`0fae20b77d144dd61382dc95e1810a58ae04894afaa0d315974ec105f7fc778d`
+- 主 HAP 与 `ohosTest` HAP 均使用用户本机 debug provision 完成签名；个人签名配置未纳入版本库。
 - `ohosTest` 仅完成编译打包，尚未在设备执行。
 
 ## 运行状态
 
-当前未发现已连接的 HDC 目标，因此尚无 Previewer 或设备运行证据。构建成功只证明工程可被当前 Hvigor/SDK 编译打包，不能证明 Map Kit 已通过在线鉴权或定位已在真机工作。
+设备 `2PN6R24402004396` 已完成安装、启动和核心流程复验。Map Kit 在线地图、3D 地球、横竖屏响应式布局、位置权限申请、当前位置捕捉与镜头居中均有真机证据。录音和 AI 鉴定仍是明确标注的固定模拟数据，不属于真实能力证明。
 
 ## 可信鉴定与持久化增量
 
@@ -36,17 +36,26 @@
 - Preferences 只保存地区、方言和分支，不保存原始录音或精确位置。
 - 读取或写入异常会降级为当前会话状态，不阻断鉴定和护照流程。
 - 地图点位增加独立“已点亮”图标；本地兜底地图同时显示文字状态。
-- 主 HAP 与 `ohosTest` HAP 已通过 Hvigor 编译；确认、纠正、重启恢复和点亮图标仍待真机验证。
+- 用户确认、纠正为“重庆话 · 成渝片”、生成个人护照、地图点亮图标和覆盖安装后恢复均已通过真机验证。
 
 ## 2026-07-23 真机面板复验
 
 - 设备 `2PN6R24402004396` 成功安装并启动 `com.dialectmap.app` 0.1.0。
 - 包管理信息确认应用为 HarmonyOS Stage 模型、debug provision，目标与兼容版本为 5.0.0(12)。
-- Map Kit 3D 地球、四个乡音点位和“我的位置”入口已在真机显示。
+- Map Kit 3D 地球、五个乡音点位和“我的位置”入口已在真机显示。
 - 同乡面板紧凑态约 220vp，真机截图未再出现原42%收起态的大面积空白。
 - 通过设备输入完成紧凑态向上拖动、充分展开向下拖动，两个方向均成功吸附。
 - 从同乡入口打开乡音护照成功，系统返回可回到地图。
-- 首次位置权限弹窗真实显示用途说明及允许/不允许选项；选择“仅使用期间允许”后 HDC 断开，定位结果回调与镜头居中仍未形成最终证据。
+- 首次位置权限弹窗真实显示用途说明及允许/不允许选项；选择“仅使用期间允许”后，蓝色当前位置标记、镜头居中和“已定位到你当前所在的位置”均已复验。
+
+## 2026-07-23 鉴定主链与恢复复验
+
+- 固定模拟结果正确展示方言分支、置信度、保留度、候选地域、识别依据和模拟能力声明。
+- 点击“不太准确”后可选择“重庆话 · 成渝片”，页面显示“已由你确认”，未经确认不能提前点亮。
+- 点击“点亮重庆并生成乡音护照”后进入当前用户护照，包含头像/昵称、所在地、方言归属、87% 置信度、76% 保留度、代表语音、已点亮地区、同乡好友、关注、被关注和分享入口。
+- 系统返回回到地图；新增重庆点位并以绿色勾选图标表达“已点亮”，不只依赖颜色。
+- 使用 `hdc install -r` 覆盖安装并重新启动应用后，重庆点亮图标仍显示；打开“我的乡音护照”仍恢复重庆话、重庆地区、87% 和 76%，证明 Preferences 持久化生效。
+- 真机修复后重新执行 Hvigor，`BUILD SUCCESSFUL in 27 s 469 ms`。
 
 ## 仓颉状态
 
