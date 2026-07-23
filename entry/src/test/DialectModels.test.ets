@@ -38,6 +38,7 @@ export default function dialectModelsTests(): void {
       expect(passport.userId).assertEqual(user.id);
       expect(passport.dialectName).assertEqual(user.dialectName);
       expect(passport.litRegions.length).assertEqual(user.litRegions.length);
+      expect(passport.isCurrentUser).assertFalse();
     });
 
     it('creates the current user from a simulated assessment and lights its region', 0, (): void => {
@@ -46,6 +47,7 @@ export default function dialectModelsTests(): void {
       expect(currentUser.id).assertEqual('current-user');
       expect(currentUser.litRegions[0]).assertEqual('四川');
       expect(currentUser.confidence).assertEqual(assessment.confidence);
+      expect(createPassport(currentUser, true).isCurrentUser).assertTrue();
     });
   });
 }

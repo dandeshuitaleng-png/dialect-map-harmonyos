@@ -129,7 +129,7 @@ dialect-map-harmonyos/
 │   ├── src/
 │   │   ├── dialect/                # 方言与鉴定领域模型
 │   │   └── passport/               # 乡音护照领域模型
-│   └── tests/
+│   └── src/**/**/*_test.cj          # 与被测文件同包的单元测试
 ├── docs/
 │   └── spec.md
 └── tasks/
@@ -151,12 +151,12 @@ export interface DialectProfile {
 仓颉代码遵循 CangjieSkills 规范：
 
 ```cangjie
-package dialect
+package dialect_domain.dialect
 
 public struct DialectAssessment {
     public let dialectName: String
-    public let confidence: UInt8
-    public let retention: UInt8
+    public let confidence: Int64
+    public let retention: Int64
 }
 ```
 
@@ -208,4 +208,3 @@ public struct DialectAssessment {
 1. 首版是否接受地图、鉴定和同乡数据全部使用本地模拟数据？
 2. 首版是否以“可构建的 HarmonyOS 原生 Demo”为交付目标？
 3. 是否接受 ArkTS UI 与待安装工具链的仓颉领域层分离？
-

@@ -21,16 +21,17 @@ struct Index {
   @State selectedUserId: string = '';
   @State assessmentOpen: boolean = false;
   @State currentUserCreated: boolean = false;
+  @State currentUser: FellowUser =
+    createCurrentUserFromAssessment(createSimulatedAssessment('四川', '四川话'));
   private readonly markers: MapMarker[] = getMapMarkers();
   private readonly users: FellowUser[] = getFellowUsers();
-  private readonly currentUser: FellowUser =
-    createCurrentUserFromAssessment(createSimulatedAssessment('四川', '四川话'));
 
   build() {
     if (this.assessmentOpen) {
       VoiceAssessmentPage({
         onBack: (): void => { this.assessmentOpen = false; },
         onComplete: (assessment: DialectAssessment): void => {
+          this.currentUser = createCurrentUserFromAssessment(assessment);
           this.currentUserCreated = true;
           this.assessmentOpen = false;
           this.selectedUserId = this.currentUser.id;
@@ -38,7 +39,10 @@ struct Index {
       })
     } else if (this.selectedUser() !== undefined) {
       VoicePassportPage({
-        passport: createPassport(this.selectedUser()!),
+        passport: createPassport(
+          this.selectedUser()!,
+          this.selectedUser()!.id === this.currentUser.id
+        ),
         onBack: (): void => { this.selectedUserId = ''; }
       })
     } else {

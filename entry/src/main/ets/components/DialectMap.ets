@@ -18,10 +18,18 @@ export struct DialectMap {
 
   build() {
     Stack({ alignContent: Alignment.TopStart }) {
-      Image($rawfile('china-terrain-map.png'))
+      Stack({ alignContent: Alignment.TopStart }) {
+        Image($rawfile('china-terrain-map.png'))
+          .width(MAP_WIDTH)
+          .height(MAP_HEIGHT)
+          .objectFit(ImageFit.Cover)
+
+        ForEach(this.markers, (marker: MapMarker): void => {
+          DialectMarker({ marker: marker })
+        }, (marker: MapMarker): string => marker.id)
+      }
         .width(MAP_WIDTH)
         .height(MAP_HEIGHT)
-        .objectFit(ImageFit.Cover)
         .scale({ x: this.mapScale, y: this.mapScale })
         .translate({ x: this.offsetX, y: this.offsetY })
 
@@ -51,10 +59,6 @@ export struct DialectMap {
       .zIndex(3)
       .shadow({ radius: 16, color: 'rgba(31,75,64,0.18)' })
       .onClick((): void => { this.resetViewport(); })
-
-      ForEach(this.markers, (marker: MapMarker): void => {
-        DialectMarker({ marker: marker })
-      }, (marker: MapMarker): string => marker.id)
 
       Row() {
         Text('单指拖动 · 双指缩放')
