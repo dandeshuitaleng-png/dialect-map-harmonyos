@@ -1,4 +1,4 @@
-import { AsyncCallback, BusinessError } from '@kit.BasicServicesKit';
+import { AsyncCallback, BusinessError, deviceInfo } from '@kit.BasicServicesKit';
 import {
   abilityAccessCtrl,
   common,
@@ -27,18 +27,21 @@ export struct HarmonyDialectMap {
         latitude: 35.8617,
         longitude: 104.1954
       },
-      zoom: 4.6
+      zoom: 3.2,
+      tilt: 18,
+      bearing: 0
     },
-    minZoom: 3,
+    minZoom: 2,
     maxZoom: 18,
-    rotateGesturesEnabled: false,
-    tiltGesturesEnabled: false,
+    rotateGesturesEnabled: true,
+    tiltGesturesEnabled: true,
     scrollGesturesEnabled: true,
     zoomGesturesEnabled: true,
     zoomControlsEnabled: false,
     myLocationControlsEnabled: false,
     compassControlsEnabled: false,
-    scaleControlsEnabled: true
+    scaleControlsEnabled: true,
+    sphereEnabled: deviceInfo.sdkApiVersion >= 15
   };
   private mapCallback: AsyncCallback<map.MapComponentController> =
     async (error: BusinessError, controller: map.MapComponentController): Promise<void> => {
