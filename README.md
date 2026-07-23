@@ -31,6 +31,9 @@ docs/              产品规格与验证记录
 tasks/             实施计划与任务状态
 ```
 
+HarmonyOS 完整 UX/UI、响应式、状态、Token 与 ArkUI 交付规格见
+[docs/harmonyos-design-handoff.md](docs/harmonyos-design-handoff.md)。
+
 ## 构建 HarmonyOS HAP
 
 在工程根目录执行：
@@ -68,4 +71,3 @@ JAVA_HOME=/Applications/DevEco-Studio.app/Contents/jbr/Contents/Home \
 - 主 HAP 的签名、安装和启动。
 - `ohosTest` 在设备上的实际执行。
 - 仓颉领域层的编译与测试。
-
