@@ -1,0 +1,12 @@
+.hvigor/
+.idea/
+build/
+entry/build/
+oh_modules/
+node_modules/
+local.properties
+*.hap
+*.hsp
+*.app
+target/
+

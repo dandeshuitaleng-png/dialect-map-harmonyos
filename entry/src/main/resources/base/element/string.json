@@ -1,0 +1,17 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "乡音地图入口模块"
+    },
+    {
+      "name": "ability_description",
+      "value": "浏览全国乡音并生成乡音护照"
+    },
+    {
+      "name": "entry_label",
+      "value": "乡音地图"
+    }
+  ]
+}
+
