@@ -6,6 +6,8 @@ import {
   createPassport,
   createSimulatedAssessment,
   filterFellowsBySource,
+  getDialectClassification,
+  getDialectClassifications,
   getFellowUsers,
   getMapMarkers
 } from '../main/ets/services/MockDialectService';
@@ -21,6 +23,9 @@ export default function dialectModelsTests(): void {
     it('returns deterministic map markers and three fellow sources', 0, (): void => {
       expect(getMapMarkers().length).assertEqual(5);
       expect(getMapMarkers()[1].regionName).assertEqual('重庆');
+      expect(getDialectClassifications().length).assertEqual(5);
+      expect(getDialectClassification('上海', '上海话').dialectFamily).assertEqual('吴语');
+      expect(getDialectClassification('广州', '粤语').dialectGroup).assertEqual('广府片');
       expect(filterFellowsBySource(getFellowUsers(), FellowSource.NEARBY).length).assertEqual(1);
       expect(filterFellowsBySource(getFellowUsers(), FellowSource.RECOMMENDED).length).assertEqual(1);
       expect(filterFellowsBySource(getFellowUsers(), FellowSource.CURRENT_REGION).length).assertEqual(2);
@@ -31,6 +36,7 @@ export default function dialectModelsTests(): void {
       expect(assessment.isSimulated).assertTrue();
       expect(assessment.confidence).assertEqual(87);
       expect(assessment.retention).assertEqual(76);
+      expect(assessment.dialectFamily).assertEqual('官话');
       expect(assessment.dialectGroup).assertEqual('西南官话');
       expect(assessment.dialectBranch).assertEqual('成渝片');
       expect(assessment.regionCandidates.length).assertEqual(3);

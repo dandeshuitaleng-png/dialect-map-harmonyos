@@ -12,10 +12,24 @@ export enum RecordingState {
   RESULT = 'result'
 }
 
-export interface MapMarker {
+export interface DialectClassification {
   readonly id: string;
   readonly regionName: string;
   readonly dialectName: string;
+  readonly dialectFamily: string;
+  readonly dialectGroup: string;
+  readonly dialectBranch: string;
+  readonly isDemonstration: boolean;
+}
+
+export interface MapMarker {
+  readonly id: string;
+  readonly classificationId: string;
+  readonly regionName: string;
+  readonly dialectName: string;
+  readonly dialectFamily: string;
+  readonly dialectGroup: string;
+  readonly dialectBranch: string;
   readonly fellowCount: number;
   readonly latitude: number;
   readonly longitude: number;
@@ -29,6 +43,9 @@ export interface FellowUser {
   readonly initials: string;
   readonly location: string;
   readonly dialectName: string;
+  readonly dialectFamily: string;
+  readonly dialectGroup: string;
+  readonly dialectBranch: string;
   readonly distanceText: string;
   readonly source: FellowSource;
   readonly confidence: number;
@@ -42,7 +59,9 @@ export interface FellowUser {
 }
 
 export interface DialectAssessment {
+  readonly classificationId: string;
   readonly dialectName: string;
+  readonly dialectFamily: string;
   readonly dialectGroup: string;
   readonly dialectBranch: string;
   readonly regionName: string;
@@ -66,6 +85,9 @@ export interface VoicePassport {
   readonly initials: string;
   readonly location: string;
   readonly dialectName: string;
+  readonly dialectFamily: string;
+  readonly dialectGroup: string;
+  readonly dialectBranch: string;
   readonly confidence: number;
   readonly retention: number;
   readonly representativeVoiceTitle: string;

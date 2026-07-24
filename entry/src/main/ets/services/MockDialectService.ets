@@ -1,4 +1,5 @@
 import {
+  DialectClassification,
   DialectAssessment,
   FellowSource,
   FellowUser,
@@ -9,16 +10,83 @@ import {
 const MIN_SCORE: number = 0;
 const MAX_SCORE: number = 100;
 
+const DIALECT_CLASSIFICATIONS: DialectClassification[] = [
+  {
+    id: 'sichuan-chengyu',
+    regionName: '四川',
+    dialectName: '四川话',
+    dialectFamily: '官话',
+    dialectGroup: '西南官话',
+    dialectBranch: '成渝片',
+    isDemonstration: true
+  },
+  {
+    id: 'chongqing-chengyu',
+    regionName: '重庆',
+    dialectName: '重庆话',
+    dialectFamily: '官话',
+    dialectGroup: '西南官话',
+    dialectBranch: '成渝片',
+    isDemonstration: true
+  },
+  {
+    id: 'guangzhou-guangfu',
+    regionName: '广州',
+    dialectName: '粤语',
+    dialectFamily: '粤语',
+    dialectGroup: '广府片',
+    dialectBranch: '广州话',
+    isDemonstration: true
+  },
+  {
+    id: 'shanghai-suhujia',
+    regionName: '上海',
+    dialectName: '上海话',
+    dialectFamily: '吴语',
+    dialectGroup: '太湖片',
+    dialectBranch: '苏沪嘉小片',
+    isDemonstration: true
+  },
+  {
+    id: 'beijing-jingshi',
+    regionName: '北京',
+    dialectName: '北京话',
+    dialectFamily: '官话',
+    dialectGroup: '北京官话',
+    dialectBranch: '京师片',
+    isDemonstration: true
+  }
+];
+
 export function clampScore(score: number): number {
   return Math.max(MIN_SCORE, Math.min(MAX_SCORE, Math.round(score)));
+}
+
+export function getDialectClassifications(): DialectClassification[] {
+  return DIALECT_CLASSIFICATIONS;
+}
+
+export function getDialectClassification(
+  regionName: string,
+  dialectName: string
+): DialectClassification {
+  const matched = DIALECT_CLASSIFICATIONS.find(
+    (item: DialectClassification): boolean =>
+      item.regionName === regionName && item.dialectName === dialectName
+  );
+  return matched ?? DIALECT_CLASSIFICATIONS[0];
 }
 
 export function getMapMarkers(): MapMarker[] {
   return [
     {
       id: 'sichuan',
+      classificationId: 'sichuan-chengyu',
       regionName: '四川',
       dialectName: '四川话',
+      dialectFamily: '官话',
+      dialectGroup: '西南官话',
+      dialectBranch: '成渝片',
       fellowCount: 87000,
       latitude: 30.5728,
       longitude: 104.0668,
@@ -27,8 +95,12 @@ export function getMapMarkers(): MapMarker[] {
     },
     {
       id: 'chongqing',
+      classificationId: 'chongqing-chengyu',
       regionName: '重庆',
       dialectName: '重庆话',
+      dialectFamily: '官话',
+      dialectGroup: '西南官话',
+      dialectBranch: '成渝片',
       fellowCount: 62000,
       latitude: 29.5630,
       longitude: 106.5516,
@@ -37,8 +109,12 @@ export function getMapMarkers(): MapMarker[] {
     },
     {
       id: 'guangdong',
-      regionName: '广东',
+      classificationId: 'guangzhou-guangfu',
+      regionName: '广州',
       dialectName: '粤语',
+      dialectFamily: '粤语',
+      dialectGroup: '广府片',
+      dialectBranch: '广州话',
       fellowCount: 54000,
       latitude: 23.1291,
       longitude: 113.2644,
@@ -47,8 +123,12 @@ export function getMapMarkers(): MapMarker[] {
     },
     {
       id: 'shanghai',
+      classificationId: 'shanghai-suhujia',
       regionName: '上海',
       dialectName: '上海话',
+      dialectFamily: '吴语',
+      dialectGroup: '太湖片',
+      dialectBranch: '苏沪嘉小片',
       fellowCount: 36000,
       latitude: 31.2304,
       longitude: 121.4737,
@@ -57,8 +137,12 @@ export function getMapMarkers(): MapMarker[] {
     },
     {
       id: 'beijing',
+      classificationId: 'beijing-jingshi',
       regionName: '北京',
       dialectName: '北京话',
+      dialectFamily: '官话',
+      dialectGroup: '北京官话',
+      dialectBranch: '京师片',
       fellowCount: 41000,
       latitude: 39.9042,
       longitude: 116.4074,
@@ -76,6 +160,9 @@ export function getFellowUsers(): FellowUser[] {
       initials: '满',
       location: '北京 · 朝阳区',
       dialectName: '四川话',
+      dialectFamily: '官话',
+      dialectGroup: '西南官话',
+      dialectBranch: '成渝片',
       distanceText: '1.2 km',
       source: FellowSource.NEARBY,
       confidence: 87,
@@ -93,6 +180,9 @@ export function getFellowUsers(): FellowUser[] {
       initials: '晴',
       location: '广州 · 越秀区',
       dialectName: '粤语',
+      dialectFamily: '粤语',
+      dialectGroup: '广府片',
+      dialectBranch: '广州话',
       distanceText: '同城',
       source: FellowSource.RECOMMENDED,
       confidence: 93,
@@ -110,6 +200,9 @@ export function getFellowUsers(): FellowUser[] {
       initials: '周',
       location: '上海 · 黄浦区',
       dialectName: '上海话',
+      dialectFamily: '吴语',
+      dialectGroup: '太湖片',
+      dialectBranch: '苏沪嘉小片',
       distanceText: '当前区域',
       source: FellowSource.CURRENT_REGION,
       confidence: 91,
@@ -127,6 +220,9 @@ export function getFellowUsers(): FellowUser[] {
       initials: '宇',
       location: '北京 · 西城区',
       dialectName: '北京话',
+      dialectFamily: '官话',
+      dialectGroup: '北京官话',
+      dialectBranch: '京师片',
       distanceText: '当前区域',
       source: FellowSource.CURRENT_REGION,
       confidence: 89,
@@ -149,11 +245,14 @@ export function filterFellowsBySource(
 }
 
 export function createSimulatedAssessment(regionName: string, dialectName: string): DialectAssessment {
+  const classification = getDialectClassification(regionName, dialectName);
   return {
-    dialectName: dialectName,
-    dialectGroup: '西南官话',
-    dialectBranch: '成渝片',
-    regionName: regionName,
+    classificationId: classification.id,
+    dialectName: classification.dialectName,
+    dialectFamily: classification.dialectFamily,
+    dialectGroup: classification.dialectGroup,
+    dialectBranch: classification.dialectBranch,
+    regionName: classification.regionName,
     regionCandidates: [
       { name: '成都', confidence: 82 },
       { name: '眉山', confidence: 11 },
@@ -174,11 +273,14 @@ export function correctSimulatedAssessment(
   dialectName: string,
   dialectBranch: string
 ): DialectAssessment {
+  const classification = getDialectClassification(regionName, dialectName);
   return {
-    dialectName: dialectName,
-    dialectGroup: assessment.dialectGroup,
+    classificationId: classification.id,
+    dialectName: classification.dialectName,
+    dialectFamily: classification.dialectFamily,
+    dialectGroup: classification.dialectGroup,
     dialectBranch: dialectBranch,
-    regionName: regionName,
+    regionName: classification.regionName,
     regionCandidates: assessment.regionCandidates,
     confidence: assessment.confidence,
     retention: assessment.retention,
@@ -199,6 +301,9 @@ export function createPassport(
     initials: user.initials,
     location: user.location,
     dialectName: user.dialectName,
+    dialectFamily: user.dialectFamily,
+    dialectGroup: user.dialectGroup,
+    dialectBranch: user.dialectBranch,
     confidence: clampScore(user.confidence),
     retention: clampScore(user.retention),
     representativeVoiceTitle: user.voiceTitle,
@@ -216,8 +321,11 @@ export function createCurrentUserFromAssessment(assessment: DialectAssessment): 
     id: 'current-user',
     nickname: '我的乡音',
     initials: '我',
-    location: assessment.regionName + ' · 成都',
+    location: assessment.regionName,
     dialectName: assessment.dialectName,
+    dialectFamily: assessment.dialectFamily,
+    dialectGroup: assessment.dialectGroup,
+    dialectBranch: assessment.dialectBranch,
     distanceText: '当前用户',
     source: FellowSource.CURRENT_REGION,
     confidence: clampScore(assessment.confidence),
