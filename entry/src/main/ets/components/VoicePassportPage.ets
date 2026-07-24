@@ -164,6 +164,10 @@ export struct VoicePassportPage {
             .fontSize(13)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.on_emphasis'))
+          Text(this.passport.dialectFamily + ' · ' + this.passport.dialectGroup +
+            ' · ' + this.passport.dialectBranch)
+            .fontSize(12)
+            .fontColor($r('app.color.on_emphasis_secondary'))
         }
         .alignItems(HorizontalAlign.Start)
         .layoutWeight(1)
@@ -211,10 +215,16 @@ export struct VoicePassportPage {
           .fontSize(12)
           .fontColor($r('app.color.on_emphasis_secondary'))
         Blank()
-        Text(this.passport.dialectName)
-          .fontSize(16)
-          .fontWeight(FontWeight.Bold)
-          .fontColor($r('app.color.on_emphasis'))
+        Column({ space: 2 }) {
+          Text(this.passport.dialectGroup + ' · ' + this.passport.dialectBranch)
+            .fontSize(16)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.on_emphasis'))
+          Text(this.passport.dialectName)
+            .fontSize(12)
+            .fontColor($r('app.color.on_emphasis_secondary'))
+        }
+        .alignItems(HorizontalAlign.End)
       }
       .width('100%')
     }
@@ -248,6 +258,12 @@ export struct VoicePassportPage {
           .borderRadius(8)
       }
       .width('100%')
+
+      Text(this.passport.dialectFamily + ' · ' + this.passport.dialectGroup +
+        ' · ' + this.passport.dialectBranch)
+        .fontSize(12)
+        .fontColor(MUTED)
+        .width('100%')
 
       Row() {
         PassportMetric({

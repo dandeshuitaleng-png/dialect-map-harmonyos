@@ -136,6 +136,7 @@ export struct HarmonyDialectMap {
           },
           title: marker.dialectName,
           snippet: (marker.regionName === this.litRegionName ? '已点亮 · ' : '') +
+            marker.dialectGroup + ' · ' + marker.dialectBranch + ' · ' +
             marker.regionName + ' · ' + this.formatCount(marker.fellowCount),
           icon: marker.regionName === this.litRegionName ?
             $r('app.media.dialect_marker_lit') : $r('app.media.dialect_marker'),

@@ -12,6 +12,8 @@ export struct FellowPanel {
   @Prop wideMode: boolean = false;
   @Prop portraitTabletMode: boolean = false;
   @Prop availableHeight: number = 720;
+  @Prop litDialectCount: number = 0;
+  @Prop totalDialectCount: number = 4;
   @Link expanded: boolean;
   @Link selectedSource: FellowSource;
   onOpenUser: (userId: string) => void = (_userId: string): void => {};
@@ -43,7 +45,8 @@ export struct FellowPanel {
               .fontSize(21)
               .fontWeight(FontWeight.Bold)
               .fontColor(INK)
-            Text('地图上的声音，正在靠近')
+            Text(this.litDialectCount.toString() + ' / ' +
+              this.totalDialectCount.toString() + ' 个演示片区已点亮')
               .fontSize(12)
               .fontColor(MUTED)
           }

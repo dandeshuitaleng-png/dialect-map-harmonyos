@@ -172,7 +172,8 @@ export struct VoiceAssessmentPage {
             .fontSize(34)
             .fontWeight(FontWeight.Bold)
             .fontColor(INK)
-          Text(this.assessment.dialectGroup + ' · ' + this.assessment.dialectBranch)
+          Text(this.assessment.dialectFamily + ' · ' +
+            this.assessment.dialectGroup + ' · ' + this.assessment.dialectBranch)
             .fontSize(12)
             .fontColor(MUTED)
         }
@@ -252,12 +253,18 @@ export struct VoiceAssessmentPage {
             .fontColor(MUTED)
             .width('100%')
           Row() {
-            Text('四川')
-              .fontSize(20)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(INK)
+            Column({ space: 3 }) {
+              Text(this.assessment.dialectGroup + ' · ' + this.assessment.dialectBranch)
+                .fontSize(20)
+                .fontWeight(FontWeight.Bold)
+                .fontColor(INK)
+              Text('在' + this.assessment.regionName + '留下乡音足迹')
+                .fontSize(12)
+                .fontColor(MUTED)
+            }
+            .alignItems(HorizontalAlign.Start)
             Blank()
-            Text('乡音地区')
+            Text('演示片区')
               .fontSize(12)
               .fontColor(GREEN)
           }
@@ -342,7 +349,7 @@ export struct VoiceAssessmentPage {
             .fontSize(12)
             .fontColor(GREEN)
             .width('100%')
-          Button('点亮' + this.assessment.regionName + '并生成乡音护照')
+          Button('点亮' + this.assessment.dialectBranch + '并生成乡音护照')
             .width('100%')
             .height(50)
             .fontSize(15)
