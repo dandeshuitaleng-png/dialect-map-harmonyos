@@ -66,6 +66,17 @@ export function getDialectClassifications(): DialectClassification[] {
   return DIALECT_CLASSIFICATIONS;
 }
 
+export function getDemonstrationDialectZoneCount(): number {
+  const zoneKeys: string[] = [];
+  DIALECT_CLASSIFICATIONS.forEach((item: DialectClassification): void => {
+    const zoneKey = item.dialectGroup + '|' + item.dialectBranch;
+    if (zoneKeys.indexOf(zoneKey) < 0) {
+      zoneKeys.push(zoneKey);
+    }
+  });
+  return zoneKeys.length;
+}
+
 export function getDialectClassification(
   regionName: string,
   dialectName: string
@@ -74,7 +85,18 @@ export function getDialectClassification(
     (item: DialectClassification): boolean =>
       item.regionName === regionName && item.dialectName === dialectName
   );
-  return matched ?? DIALECT_CLASSIFICATIONS[0];
+  if (matched !== undefined) {
+    return matched;
+  }
+  return {
+    id: 'unclassified',
+    regionName: regionName,
+    dialectName: dialectName,
+    dialectFamily: '待确认',
+    dialectGroup: '分类待确认',
+    dialectBranch: '地方口音',
+    isDemonstration: true
+  };
 }
 
 export function getMapMarkers(): MapMarker[] {

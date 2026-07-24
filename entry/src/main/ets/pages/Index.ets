@@ -10,6 +10,7 @@ import {
   createPassport,
   createSimulatedAssessment,
   getFellowUsers,
+  getDemonstrationDialectZoneCount,
   getMapMarkers
 } from '../services/MockDialectService';
 import {
@@ -32,6 +33,7 @@ struct Index {
     createCurrentUserFromAssessment(createSimulatedAssessment('四川', '四川话'));
   private readonly markers: MapMarker[] = getMapMarkers();
   private readonly users: FellowUser[] = getFellowUsers();
+  private readonly totalDialectCount: number = getDemonstrationDialectZoneCount();
 
   aboutToAppear(): void {
     this.restorePassportState();
@@ -88,7 +90,7 @@ struct Index {
         portraitTabletMode: this.isPortraitTablet(),
         availableHeight: this.windowHeight,
         litDialectCount: this.litRegionName.length > 0 ? 1 : 0,
-        totalDialectCount: 4,
+        totalDialectCount: this.totalDialectCount,
         expanded: $panelExpanded,
         selectedSource: $selectedSource,
         onOpenUser: (userId: string): void => { this.selectedUserId = userId; },
@@ -117,7 +119,7 @@ struct Index {
         portraitTabletMode: false,
         availableHeight: this.windowHeight,
         litDialectCount: this.litRegionName.length > 0 ? 1 : 0,
-        totalDialectCount: 4,
+        totalDialectCount: this.totalDialectCount,
         expanded: $panelExpanded,
         selectedSource: $selectedSource,
         onOpenUser: (userId: string): void => { this.selectedUserId = userId; },
