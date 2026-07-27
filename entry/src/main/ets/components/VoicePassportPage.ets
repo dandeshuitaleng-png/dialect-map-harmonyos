@@ -3,15 +3,17 @@ import { VoicePassport } from '../models/DialectModels';
 const PAPER: ResourceColor = $r('app.color.background_page');
 const INK: ResourceColor = $r('app.color.ink_primary');
 const MUTED: ResourceColor = $r('app.color.ink_muted');
-const ACCENT: ResourceColor = $r('app.color.accent');
-const GREEN: ResourceColor = $r('app.color.confirm');
+const ACCENT_FILL: ResourceColor = $r('app.color.accent');
+const ACCENT_TEXT: ResourceColor = $r('app.color.accent_text');
+const CONFIRM_FILL: ResourceColor = $r('app.color.confirm');
+const CONFIRM_TEXT: ResourceColor = $r('app.color.confirm_text');
 
 @Component
 export struct VoicePassportPage {
   @Prop passport: VoicePassport;
+  @Link sharePreviewOpen: boolean;
   onBack: () => void = (): void => {};
   @State voicePlaying: boolean = false;
-  @State sharePreviewOpen: boolean = false;
   @State shareReady: boolean = false;
   @State windowWidth: number = 360;
 
@@ -20,28 +22,35 @@ export struct VoicePassportPage {
       Column() {
         this.titleBar()
 
-        Scroll() {
-          if (this.isWideLayout()) {
-            Row({ space: 20 }) {
-              Column({ space: 16 }) {
-                this.identityPassportCard(false)
-                this.shareAction()
-              }
-              .width('40%')
+        if (this.isWideLayout()) {
+          List() {
+            ListItem() {
+              Row({ space: 20 }) {
+                Column({ space: 16 }) {
+                  this.identityPassportCard(false)
+                  this.shareAction()
+                }
+                .width('40%')
 
-              Column({ space: 16 }) {
-                this.metricsCard()
-                this.voiceCard()
-                this.litRegionsCard()
-                this.socialCard()
+                Column({ space: 14 }) {
+                  this.metricsCard()
+                  this.voiceCard()
+                  this.litRegionsCard()
+                  this.socialCard()
+                }
+                .layoutWeight(1)
               }
-              .layoutWeight(1)
+              .alignItems(VerticalAlign.Top)
+              .width('100%')
+              .constraintSize({ maxWidth: 1180 })
+              .padding({ left: 32, right: 32, top: 20, bottom: 40 })
             }
-            .alignItems(VerticalAlign.Top)
-            .width('100%')
-            .constraintSize({ maxWidth: 1180 })
-            .padding({ left: 32, right: 32, top: 20, bottom: 40 })
-          } else {
+          }
+          .layoutWeight(1)
+          .scrollBar(BarState.Off)
+          .width('100%')
+        } else {
+          Scroll() {
             Column({ space: 14 }) {
               this.identityPassportCard(false)
               this.metricsCard()
@@ -54,10 +63,10 @@ export struct VoicePassportPage {
             .constraintSize({ maxWidth: 620 })
             .padding({ left: 18, right: 18, top: 10, bottom: 36 })
           }
+          .layoutWeight(1)
+          .scrollBar(BarState.Off)
+          .width('100%')
         }
-        .layoutWeight(1)
-        .scrollBar(BarState.Off)
-        .width('100%')
       }
       .width('100%')
       .height('100%')
@@ -76,17 +85,29 @@ export struct VoicePassportPage {
 
   @Builder
   private titleBar() {
-    Row() {
-      Button({ type: ButtonType.Circle }) {
-        Text('‹').fontSize(28).fontColor(INK)
-      }
-      .width(48)
-      .height(48)
-      .backgroundColor($r('app.color.surface_primary'))
-      .onClick(this.onBack)
-      .accessibilityText('返回上一页')
+    Stack({ alignContent: Alignment.Center }) {
+      Row() {
+        Button({ type: ButtonType.Circle }) {
+          Text('‹').fontSize(28).fontColor(INK)
+        }
+        .width(48)
+        .height(48)
+        .backgroundColor($r('app.color.surface_primary'))
+        .onClick(this.onBack)
+        .accessibilityText('返回乡音地图')
 
-      Blank()
+        Blank()
+
+        Button({ type: ButtonType.Circle }) {
+          Text('↗').fontSize(18).fontColor(INK)
+        }
+        .width(48)
+        .height(48)
+        .backgroundColor($r('app.color.surface_primary'))
+        .onClick((): void => { this.sharePreviewOpen = true; })
+        .accessibilityText('预览并分享个人乡音名片')
+      }
+      .width('100%')
 
       Column({ space: 2 }) {
         Text('乡音护照')
@@ -98,22 +119,13 @@ export struct VoicePassportPage {
           .fontColor(MUTED)
           .letterSpacing(1.1)
       }
-
-      Blank()
-
-      Button({ type: ButtonType.Circle }) {
-        Text('↗').fontSize(18).fontColor(INK)
-      }
-      .width(48)
-      .height(48)
-      .backgroundColor($r('app.color.surface_primary'))
-      .onClick((): void => { this.sharePreviewOpen = true; })
-      .accessibilityText('预览并分享个人乡音名片')
+      .accessibilityGroup(true)
     }
     .width('100%')
-    .height(72)
+    .height(56)
     .padding({ left: this.isWideLayout() ? 32 : 18, right: this.isWideLayout() ? 32 : 18 })
     .backgroundColor(PAPER)
+    .border({ width: { bottom: 1 }, color: $r('app.color.divider') })
   }
 
   @Builder
@@ -121,7 +133,7 @@ export struct VoicePassportPage {
     Column({ space: compact ? 12 : 16 }) {
       Row() {
         Column({ space: 2 }) {
-          Text('中国乡音护照')
+          Text('乡音护照')
             .fontSize(12)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.on_emphasis_secondary'))
@@ -149,7 +161,7 @@ export struct VoicePassportPage {
         .width(compact ? 60 : 74)
         .height(compact ? 60 : 74)
         .borderRadius(compact ? 30 : 37)
-        .backgroundColor(ACCENT)
+        .backgroundColor(ACCENT_FILL)
         .border({ width: 3, color: $r('app.color.on_emphasis') })
 
         Column({ space: 5 }) {
@@ -197,10 +209,6 @@ export struct VoicePassportPage {
                 .color($r('app.color.on_emphasis_secondary'))
             }
             Column({ space: 4 }) {
-              Circle()
-                .width(12)
-                .height(12)
-                .fill(index === 0 ? ACCENT : $r('app.color.on_emphasis'))
               Text(region)
                 .fontSize(12)
                 .fontColor($r('app.color.on_emphasis'))
@@ -230,9 +238,9 @@ export struct VoicePassportPage {
     }
     .width('100%')
     .padding(compact ? 18 : 22)
-    .backgroundColor(GREEN)
+    .backgroundColor(CONFIRM_FILL)
     .borderRadius(22)
-    .shadow({ radius: 22, color: $r('app.color.shadow_soft'), offsetY: 8 })
+    .shadow({ radius: 12, color: $r('app.color.shadow_soft'), offsetY: 4 })
     .accessibilityGroup(true)
     .accessibilityText(
       this.passport.nickname + '，' + this.passport.location + '，' +
@@ -252,7 +260,7 @@ export struct VoicePassportPage {
         Text(this.passport.dialectName)
           .fontSize(12)
           .fontWeight(FontWeight.Bold)
-          .fontColor(ACCENT)
+          .fontColor(ACCENT_TEXT)
           .padding({ left: 9, right: 9, top: 5, bottom: 5 })
           .backgroundColor($r('app.color.surface_accent_soft'))
           .borderRadius(8)
@@ -269,22 +277,23 @@ export struct VoicePassportPage {
         PassportMetric({
           label: '鉴定置信度',
           value: this.passport.confidence,
-          color: ACCENT
+          color: ACCENT_TEXT
         })
         Divider().vertical(true).height(62).color($r('app.color.divider'))
         PassportMetric({
           label: '乡音保留度',
           value: this.passport.retention,
-          color: GREEN
+          color: CONFIRM_TEXT
         })
       }
       .width('100%')
     }
     .padding(20)
     .width('100%')
-    .backgroundColor($r('app.color.surface_primary'))
-    .borderRadius(18)
+    .backgroundColor($r('app.color.passport_surface'))
+    .borderRadius(16)
     .border({ width: 1, color: $r('app.color.border') })
+    .shadow({ radius: 8, color: $r('app.color.shadow_card'), offsetY: 3 })
   }
 
   @Builder
@@ -310,13 +319,19 @@ export struct VoicePassportPage {
 
       Row({ space: 14 }) {
         Button({ type: ButtonType.Circle }) {
-          Text(this.voicePlaying ? 'Ⅱ' : '▶')
-            .fontSize(14)
-            .fontColor($r('app.color.on_emphasis'))
+          if (this.voicePlaying) {
+            SymbolGlyph($r('sys.symbol.pause'))
+              .fontSize(22)
+              .fontColor([$r('app.color.on_emphasis')])
+          } else {
+            SymbolGlyph($r('sys.symbol.play'))
+              .fontSize(22)
+              .fontColor([$r('app.color.on_emphasis')])
+          }
         }
         .width(48)
         .height(48)
-        .backgroundColor(ACCENT)
+        .backgroundColor(ACCENT_FILL)
         .onClick((): void => { this.voicePlaying = !this.voicePlaying; })
         .accessibilityText(this.voicePlaying ? '暂停代表语音' : '播放代表语音')
 
@@ -326,7 +341,7 @@ export struct VoicePassportPage {
             total: 100,
             type: ProgressType.Linear
           })
-            .color(ACCENT)
+            .color(ACCENT_TEXT)
             .backgroundColor($r('app.color.divider'))
             .height(4)
           Row({ space: 3 }) {
@@ -335,7 +350,8 @@ export struct VoicePassportPage {
                 .vertical(true)
                 .height(height)
                 .strokeWidth(3)
-                .color(this.voicePlaying ? ACCENT : $r('app.color.ink_tertiary'))
+                .color(this.voicePlaying ?
+                  ACCENT_TEXT : $r('app.color.ink_tertiary'))
                 .borderRadius(2)
             })
           }
@@ -347,9 +363,10 @@ export struct VoicePassportPage {
     }
     .padding(20)
     .width('100%')
-    .backgroundColor($r('app.color.surface_primary'))
-    .borderRadius(18)
+    .backgroundColor($r('app.color.passport_surface'))
+    .borderRadius(16)
     .border({ width: 1, color: $r('app.color.border') })
+    .shadow({ radius: 8, color: $r('app.color.shadow_card'), offsetY: 3 })
   }
 
   @Builder
@@ -364,7 +381,7 @@ export struct VoicePassportPage {
         ForEach(this.passport.litRegions as string[], (region: string): void => {
           Text(region)
             .fontSize(13)
-            .fontColor(GREEN)
+            .fontColor(CONFIRM_TEXT)
             .padding({ left: 12, right: 12, top: 7, bottom: 7 })
             .backgroundColor($r('app.color.surface_confirm_soft'))
             .borderRadius(9)
@@ -375,9 +392,10 @@ export struct VoicePassportPage {
     }
     .padding(20)
     .width('100%')
-    .backgroundColor($r('app.color.surface_primary'))
-    .borderRadius(18)
+    .backgroundColor($r('app.color.passport_surface'))
+    .borderRadius(16)
     .border({ width: 1, color: $r('app.color.border') })
+    .shadow({ radius: 8, color: $r('app.color.shadow_card'), offsetY: 3 })
   }
 
   @Builder
@@ -389,9 +407,10 @@ export struct VoicePassportPage {
     }
     .width('100%')
     .padding({ top: 18, bottom: 18 })
-    .backgroundColor($r('app.color.surface_primary'))
-    .borderRadius(18)
+    .backgroundColor($r('app.color.passport_surface'))
+    .borderRadius(16)
     .border({ width: 1, color: $r('app.color.border') })
+    .shadow({ radius: 8, color: $r('app.color.shadow_card'), offsetY: 3 })
   }
 
   @Builder
@@ -402,7 +421,7 @@ export struct VoicePassportPage {
       .fontSize(14)
       .fontWeight(FontWeight.Bold)
       .fontColor($r('app.color.on_emphasis'))
-      .backgroundColor(INK)
+      .backgroundColor(ACCENT_FILL)
       .borderRadius(14)
       .onClick((): void => { this.sharePreviewOpen = true; })
       .accessibilityText('预览并分享个人乡音名片')
@@ -437,22 +456,22 @@ export struct VoicePassportPage {
 
         this.identityPassportCard(true)
 
-        Button(this.shareReady ? '乡音名片已准备（演示）' : '使用系统分享')
+        Button(this.shareReady ? '乡音名片已准备（演示）' : '准备分享预览')
           .height(50)
           .width('100%')
           .fontSize(14)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.on_emphasis'))
-          .backgroundColor(this.shareReady ? GREEN : ACCENT)
+          .backgroundColor(this.shareReady ? CONFIRM_FILL : ACCENT_FILL)
           .borderRadius(14)
           .onClick((): void => { this.shareReady = true; })
-          .accessibilityText(this.shareReady ? '乡音名片已准备' : '使用系统分享')
+          .accessibilityText(this.shareReady ? '乡音名片已准备' : '准备乡音名片分享预览')
       }
       .width(this.isWideLayout() ? 520 : '100%')
       .padding({ left: 20, right: 20, top: 20, bottom: 28 })
       .backgroundColor(PAPER)
       .borderRadius(this.isWideLayout() ? 28 : { topLeft: 28, topRight: 28 })
-      .shadow({ radius: 30, color: $r('app.color.shadow_soft') })
+      .shadow({ radius: 22, color: $r('app.color.shadow_soft') })
     }
     .width('100%')
     .height('100%')

@@ -1,10 +1,12 @@
 .hvigor/
 .idea/
+.DS_Store
 build/
 entry/build/
 entry/.test/
 oh_modules/
 node_modules/
+video-landing/
 local.properties
 *.hap
 *.hsp

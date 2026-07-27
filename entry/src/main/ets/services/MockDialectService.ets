@@ -1,6 +1,7 @@
 import {
   DialectClassification,
   DialectAssessment,
+  DialectRegionCandidate,
   FellowSource,
   FellowUser,
   MapMarker,
@@ -9,6 +10,12 @@ import {
 
 const MIN_SCORE: number = 0;
 const MAX_SCORE: number = 100;
+
+interface SimulatedAssessmentDetails {
+  readonly regionCandidates: Array<DialectRegionCandidate>;
+  readonly evidence: Array<string>;
+  readonly similarDialects: Array<string>;
+}
 
 const DIALECT_CLASSIFICATIONS: DialectClassification[] = [
   {
@@ -245,8 +252,8 @@ export function getFellowUsers(): FellowUser[] {
       dialectFamily: '官话',
       dialectGroup: '北京官话',
       dialectBranch: '京师片',
-      distanceText: '当前区域',
-      source: FellowSource.CURRENT_REGION,
+      distanceText: '家乡推荐',
+      source: FellowSource.RECOMMENDED,
       confidence: 89,
       retention: 79,
       litRegions: ['北京', '天津'],
@@ -268,6 +275,7 @@ export function filterFellowsBySource(
 
 export function createSimulatedAssessment(regionName: string, dialectName: string): DialectAssessment {
   const classification = getDialectClassification(regionName, dialectName);
+  const details = getSimulatedAssessmentDetails(classification);
   return {
     classificationId: classification.id,
     dialectName: classification.dialectName,
@@ -275,34 +283,26 @@ export function createSimulatedAssessment(regionName: string, dialectName: strin
     dialectGroup: classification.dialectGroup,
     dialectBranch: classification.dialectBranch,
     regionName: classification.regionName,
-    regionCandidates: [
-      { name: '成都', confidence: 82 },
-      { name: '眉山', confidence: 11 },
-      { name: '重庆', confidence: 7 }
-    ],
+    regionCandidates: details.regionCandidates,
     confidence: clampScore(87),
     retention: clampScore(76),
-    evidence: ['部分声母与韵母特征', '句尾语气与成都周边表达接近', '词汇节奏符合西南官话样例'],
-    similarDialects: ['重庆话', '自贡话'],
+    evidence: details.evidence,
+    similarDialects: details.similarDialects,
     needsConfirmation: true,
     isSimulated: true
   };
 }
 
-export function correctSimulatedAssessment(
-  assessment: DialectAssessment,
-  regionName: string,
-  dialectName: string,
-  dialectBranch: string
+export function confirmSimulatedAssessment(
+  assessment: DialectAssessment
 ): DialectAssessment {
-  const classification = getDialectClassification(regionName, dialectName);
   return {
-    classificationId: classification.id,
-    dialectName: classification.dialectName,
-    dialectFamily: classification.dialectFamily,
-    dialectGroup: classification.dialectGroup,
-    dialectBranch: dialectBranch,
-    regionName: classification.regionName,
+    classificationId: assessment.classificationId,
+    dialectName: assessment.dialectName,
+    dialectFamily: assessment.dialectFamily,
+    dialectGroup: assessment.dialectGroup,
+    dialectBranch: assessment.dialectBranch,
+    regionName: assessment.regionName,
     regionCandidates: assessment.regionCandidates,
     confidence: assessment.confidence,
     retention: assessment.retention,
@@ -310,6 +310,116 @@ export function correctSimulatedAssessment(
     similarDialects: assessment.similarDialects,
     needsConfirmation: false,
     isSimulated: assessment.isSimulated
+  };
+}
+
+export function correctSimulatedAssessment(
+  assessment: DialectAssessment,
+  regionName: string,
+  dialectName: string
+): DialectAssessment {
+  const correctedAssessment = createSimulatedAssessment(regionName, dialectName);
+  return {
+    classificationId: correctedAssessment.classificationId,
+    dialectName: correctedAssessment.dialectName,
+    dialectFamily: correctedAssessment.dialectFamily,
+    dialectGroup: correctedAssessment.dialectGroup,
+    dialectBranch: correctedAssessment.dialectBranch,
+    regionName: correctedAssessment.regionName,
+    regionCandidates: correctedAssessment.regionCandidates,
+    confidence: assessment.confidence,
+    retention: assessment.retention,
+    evidence: correctedAssessment.evidence,
+    similarDialects: correctedAssessment.similarDialects,
+    needsConfirmation: false,
+    isSimulated: assessment.isSimulated
+  };
+}
+
+function getSimulatedAssessmentDetails(
+  classification: DialectClassification
+): SimulatedAssessmentDetails {
+  if (classification.id === 'sichuan-chengyu') {
+    return {
+      regionCandidates: [
+        { name: '成都', confidence: 82 },
+        { name: '眉山', confidence: 11 },
+        { name: '重庆', confidence: 7 }
+      ],
+      evidence: [
+        '部分声母与韵母特征接近成都样例',
+        '句尾语气与成都周边表达接近',
+        '词汇节奏符合四川成渝片样例'
+      ],
+      similarDialects: ['重庆话', '自贡话']
+    };
+  }
+  if (classification.id === 'chongqing-chengyu') {
+    return {
+      regionCandidates: [
+        { name: '重庆', confidence: 82 },
+        { name: '荣昌', confidence: 11 },
+        { name: '成都', confidence: 7 }
+      ],
+      evidence: [
+        '部分声母与韵母特征接近重庆样例',
+        '句尾语气与重庆城区表达接近',
+        '词汇节奏符合重庆成渝片样例'
+      ],
+      similarDialects: ['四川话', '泸州话']
+    };
+  }
+  if (classification.id === 'guangzhou-guangfu') {
+    return {
+      regionCandidates: [
+        { name: '广州', confidence: 82 },
+        { name: '佛山', confidence: 11 },
+        { name: '香港', confidence: 7 }
+      ],
+      evidence: [
+        '声调组合接近广州话样例',
+        '入声韵尾与广府片表达接近',
+        '词汇节奏符合粤语广府片样例'
+      ],
+      similarDialects: ['佛山话', '香港粤语']
+    };
+  }
+  if (classification.id === 'shanghai-suhujia') {
+    return {
+      regionCandidates: [
+        { name: '上海', confidence: 82 },
+        { name: '苏州', confidence: 11 },
+        { name: '嘉兴', confidence: 7 }
+      ],
+      evidence: [
+        '声母清浊特征接近上海话样例',
+        '连读节奏与上海城区表达接近',
+        '词汇特征符合吴语太湖片样例'
+      ],
+      similarDialects: ['苏州话', '嘉兴话']
+    };
+  }
+  if (classification.id === 'beijing-jingshi') {
+    return {
+      regionCandidates: [
+        { name: '北京', confidence: 82 },
+        { name: '承德', confidence: 11 },
+        { name: '天津', confidence: 7 }
+      ],
+      evidence: [
+        '部分声韵特征接近北京话样例',
+        '语流节奏与北京城区表达接近',
+        '词汇特征符合北京官话京师片样例'
+      ],
+      similarDialects: ['承德话', '天津话']
+    };
+  }
+  return {
+    regionCandidates: [
+      { name: classification.regionName, confidence: 100 }
+    ],
+    evidence: ['当前演示库没有该乡音的细分识别依据'],
+    similarDialects: []
   };
 }
 

@@ -1,4 +1,4 @@
-import { AsyncCallback, BusinessError, deviceInfo } from '@kit.BasicServicesKit';
+import { AsyncCallback, BusinessError } from '@kit.BasicServicesKit';
 import {
   abilityAccessCtrl,
   common,
@@ -8,30 +8,40 @@ import {
 import { MapComponent, map, mapCommon } from '@kit.MapKit';
 import { geoLocationManager } from '@kit.LocationKit';
 import { MapMarker } from '../models/DialectModels';
-import { DialectMap } from './DialectMap';
+
+const DEFAULT_CAMERA_POSITION: mapCommon.CameraPosition = {
+  target: {
+    latitude: 35.8617,
+    longitude: 104.1954
+  },
+  zoom: 2.6,
+  tilt: 0,
+  bearing: 0
+};
+
+// 保留本次应用运行期间的地图视角，避免从护照/群聊返回首页时回到默认地球视角。
+let preservedCameraPosition: mapCommon.CameraPosition | undefined = undefined;
 
 @Component
 export struct HarmonyDialectMap {
   @Prop markers: MapMarker[];
-  @Prop litRegionName: string = '';
+  @Prop @Watch('onLitRegionNameChanged') litRegionName: string = '';
   @State mapReady: boolean = false;
   @State mapFailed: boolean = false;
-  @State statusMessage: string = '正在连接 Map Kit';
+  @State statusMessage: string = '正在加载真实地图';
   @State locationRequestInFlight: boolean = false;
   @State locationStatusMessage: string = '';
   private mapController?: map.MapComponentController;
+  private dialectMarkers: map.Marker[] = [];
+  private mapLoadTimeoutId: number = -1;
+  private mapSurfaceLoaded: boolean = false;
+  private mapMarkersReady: boolean = false;
+  private mapLoadListener?: () => void;
+  private mapErrorListener?: (error?: BusinessError) => void;
   private hasRequestedLocation: boolean = false;
   private locationAuthorized: boolean = false;
   private mapOptions: mapCommon.MapOptions = {
-    position: {
-      target: {
-        latitude: 35.8617,
-        longitude: 104.1954
-      },
-      zoom: 3.2,
-      tilt: 18,
-      bearing: 0
-    },
+    position: preservedCameraPosition ?? DEFAULT_CAMERA_POSITION,
     minZoom: 2,
     maxZoom: 18,
     rotateGesturesEnabled: true,
@@ -42,83 +52,192 @@ export struct HarmonyDialectMap {
     myLocationControlsEnabled: false,
     compassControlsEnabled: false,
     scaleControlsEnabled: true,
-    sphereEnabled: deviceInfo.sdkApiVersion >= 15
+    // Map Kit 官方指南：开启球体后，缩放层级小于 4 时可清晰展示 3D 地球。
+    sphereEnabled: true
   };
   private mapCallback: AsyncCallback<map.MapComponentController> =
     async (error: BusinessError, controller: map.MapComponentController): Promise<void> => {
       if (error) {
-        this.statusMessage = '地图服务暂不可用，已切换本地地图';
-        this.mapFailed = true;
+        console.error(`[HarmonyDialectMap] Map Kit initialization failed: ${error.code} ${error.message}`);
+        this.failOnlineMap('真实地图暂不可用，请检查网络或 Map Kit 服务权限');
+        return;
+      }
+      if (this.mapFailed) {
         return;
       }
 
+      this.detachMapListeners();
       this.mapController = controller;
+      this.dialectMarkers = [];
+      this.mapSurfaceLoaded = false;
+      this.mapMarkersReady = false;
+      const activeController = controller;
+      this.mapLoadListener = (): void => {
+        if (this.mapController !== activeController || this.mapFailed) {
+          return;
+        }
+        this.mapSurfaceLoaded = true;
+        this.promoteOnlineMapIfReady();
+      };
+      this.mapErrorListener = (mapError?: BusinessError): void => {
+        if (this.mapController !== activeController) {
+          return;
+        }
+        if (mapError) {
+          console.error(`[HarmonyDialectMap] Map Kit loading failed: ${mapError.code} ${mapError.message}`);
+        }
+        this.failOnlineMap('真实地图连接失败，请检查网络或 Map Kit 服务权限');
+      };
+      controller.on('error', this.mapErrorListener);
+      controller.on('mapLoad', this.mapLoadListener);
+      this.startMapLoadTimeout();
       const markersAdded = await this.addDialectMarkers(controller);
-      if (markersAdded) {
-        this.mapReady = true;
-        this.statusMessage = 'Map Kit 地图已加载';
-      } else {
-        this.statusMessage = '乡音点位加载失败，已切换本地地图';
-        this.mapFailed = true;
+      if (this.mapController !== activeController || this.mapFailed) {
+        return;
       }
+      if (!markersAdded) {
+        this.failOnlineMap('地图点位加载失败，请重试');
+        return;
+      }
+      const markersRefreshed = markersAdded && await this.refreshDialectMarkers();
+      if (!markersRefreshed) {
+        return;
+      }
+      this.mapMarkersReady = true;
+      this.promoteOnlineMapIfReady();
     };
+
+  aboutToDisappear(): void {
+    this.preserveCameraPosition();
+    this.clearMapLoadTimeout();
+    this.detachMapListeners();
+    this.mapController = undefined;
+  }
+
+  private preserveCameraPosition(): void {
+    if (this.mapController === undefined || !this.mapSurfaceLoaded) {
+      return;
+    }
+    try {
+      const cameraPosition = this.mapController.getCameraPosition();
+      preservedCameraPosition = {
+        target: {
+          latitude: cameraPosition.target.latitude,
+          longitude: cameraPosition.target.longitude
+        },
+        zoom: cameraPosition.zoom,
+        tilt: cameraPosition.tilt,
+        bearing: cameraPosition.bearing
+      };
+    } catch (error) {
+      const cameraError = error as BusinessError;
+      console.warn(
+        `[HarmonyDialectMap] Preserve camera position skipped: ${cameraError.code} ${cameraError.message}`
+      );
+    }
+  }
 
   build() {
     Stack({ alignContent: Alignment.Center }) {
-      if (this.mapFailed) {
-        DialectMap({
-          markers: this.markers,
-          litRegionName: this.litRegionName
-        })
-      } else {
+      Row()
+        .width('100%')
+        .height('100%')
+        .backgroundColor($r('app.color.background_map'))
+        .zIndex(0)
+
+      if (!this.mapFailed) {
         MapComponent({
           mapOptions: this.mapOptions,
           mapCallback: this.mapCallback
         })
           .width('100%')
           .height('100%')
+          .opacity(this.mapReady ? 1 : 0)
+          .zIndex(1)
+          .hitTestBehavior(this.mapReady ? HitTestMode.Default : HitTestMode.Block)
+      }
 
-        if (!this.mapReady) {
-          Text(this.statusMessage)
-            .fontSize(12)
-            .fontColor($r('app.color.ink_primary'))
-            .padding({ left: 16, right: 16, top: 10, bottom: 10 })
-            .backgroundColor($r('app.color.surface_primary'))
-            .borderRadius(8)
-            .accessibilityText(this.statusMessage)
-        }
-
-        if (this.mapReady) {
-          Column({ space: 8 }) {
-            Button(this.locationRequestInFlight ? '定位中' : '我的位置')
+      if (this.mapFailed) {
+        Row({ space: 12 }) {
+          Column({ space: 2 }) {
+            Text('真实地图未连接')
               .fontSize(14)
+              .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.ink_primary'))
-              .height(48)
-              .padding({ left: 16, right: 16 })
-              .backgroundColor($r('app.color.surface_primary'))
-              .borderRadius(24)
-              .enabled(!this.locationRequestInFlight)
-              .focusable(true)
-              .accessibilityText('在地图中显示我的位置')
-              .onClick(() => {
-                this.requestMyLocation();
-              })
-
-            if (this.locationStatusMessage.length > 0) {
-              Text(this.locationStatusMessage)
-                .fontSize(12)
-                .fontColor($r('app.color.ink_primary'))
-                .maxLines(2)
-                .padding({ left: 12, right: 12, top: 8, bottom: 8 })
-                .backgroundColor($r('app.color.surface_primary'))
-                .borderRadius(8)
-                .accessibilityText(this.locationStatusMessage)
-            }
+              .width('100%')
+            Text('请检查网络或 Map Kit 服务权限后重试')
+              .fontSize(12)
+              .fontColor($r('app.color.ink_muted'))
+              .maxLines(2)
+              .width('100%')
           }
-          .alignItems(HorizontalAlign.End)
-          .position({ x: 16, y: 16 })
-          .width('calc(100% - 32vp)')
+          .alignItems(HorizontalAlign.Start)
+          .layoutWeight(1)
+
+          Button('重试在线地图')
+            .fontSize(12)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.ink_primary'))
+            .height(48)
+            .padding({ left: 14, right: 14 })
+            .backgroundColor($r('app.color.surface_primary'))
+            .borderRadius(16)
+            .onClick((): void => { this.retryOnlineMap(); })
+            .accessibilityText('重新连接在线地图')
         }
+        .width('calc(100% - 32vp)')
+        .padding({ left: 14, right: 6, top: 10, bottom: 10 })
+        .backgroundColor($r('app.color.surface_elevated'))
+        .borderRadius(18)
+        .position({ x: 16, y: 16 })
+        .zIndex(3)
+        .shadow({ radius: 10, color: $r('app.color.shadow_soft') })
+        .accessibilityText(this.statusMessage)
+      } else if (!this.mapReady) {
+        Text('正在加载真实地图')
+          .width('calc(100% - 112vp)')
+          .fontSize(12)
+          .fontColor($r('app.color.ink_primary'))
+          .maxLines(1)
+          .padding({ left: 12, right: 12, top: 9, bottom: 9 })
+          .backgroundColor($r('app.color.surface_primary'))
+          .borderRadius(12)
+          .position({ x: 16, y: 16 })
+          .zIndex(3)
+          .accessibilityText(this.statusMessage)
+      }
+
+      if (this.mapReady) {
+        Column({ space: 8 }) {
+          Button(this.locationRequestInFlight ? '定位中' : '我的位置')
+            .fontSize(14)
+            .fontColor($r('app.color.ink_primary'))
+            .height(48)
+            .padding({ left: 16, right: 16 })
+            .backgroundColor($r('app.color.surface_primary'))
+            .borderRadius(24)
+            .enabled(!this.locationRequestInFlight)
+            .focusable(true)
+            .accessibilityText('在地图中显示我的位置')
+            .onClick(() => {
+              this.requestMyLocation();
+            })
+
+          if (this.locationStatusMessage.length > 0) {
+            Text(this.locationStatusMessage)
+              .fontSize(12)
+              .fontColor($r('app.color.ink_primary'))
+              .maxLines(2)
+              .padding({ left: 12, right: 12, top: 8, bottom: 8 })
+              .backgroundColor($r('app.color.surface_primary'))
+              .borderRadius(8)
+              .accessibilityText(this.locationStatusMessage)
+          }
+        }
+        .alignItems(HorizontalAlign.End)
+        .position({ x: 16, y: 16 })
+        .width('calc(100% - 32vp)')
+        .zIndex(3)
       }
     }
     .width('100%')
@@ -136,7 +255,6 @@ export struct HarmonyDialectMap {
           },
           title: marker.dialectName,
           snippet: (marker.regionName === this.litRegionName ? '已点亮 · ' : '') +
-            marker.dialectGroup + ' · ' + marker.dialectBranch + ' · ' +
             marker.regionName + ' · ' + this.formatCount(marker.fellowCount),
           icon: marker.regionName === this.litRegionName ?
             $r('app.media.dialect_marker_lit') : $r('app.media.dialect_marker'),
@@ -150,7 +268,7 @@ export struct HarmonyDialectMap {
           flat: false
         };
 
-        await controller.addMarker(markerOptions);
+        this.dialectMarkers.push(await controller.addMarker(markerOptions));
       }
       return true;
     } catch (markerError) {
@@ -158,8 +276,119 @@ export struct HarmonyDialectMap {
     }
   }
 
+  private startMapLoadTimeout(): void {
+    this.clearMapLoadTimeout();
+    this.mapLoadTimeoutId = setTimeout((): void => {
+      if (!this.mapReady) {
+        this.failOnlineMap('真实地图加载超时，请检查网络后重试');
+      }
+    }, 10000);
+  }
+
+  private clearMapLoadTimeout(): void {
+    if (this.mapLoadTimeoutId >= 0) {
+      clearTimeout(this.mapLoadTimeoutId);
+      this.mapLoadTimeoutId = -1;
+    }
+  }
+
+  private failOnlineMap(message: string): void {
+    this.clearMapLoadTimeout();
+    this.detachMapListeners();
+    this.mapController = undefined;
+    this.dialectMarkers = [];
+    this.mapSurfaceLoaded = false;
+    this.mapMarkersReady = false;
+    this.mapReady = false;
+    this.statusMessage = message;
+    this.mapFailed = true;
+  }
+
+  private retryOnlineMap(): void {
+    this.clearMapLoadTimeout();
+    this.detachMapListeners();
+    this.mapController = undefined;
+    this.dialectMarkers = [];
+    this.mapSurfaceLoaded = false;
+    this.mapMarkersReady = false;
+    this.mapReady = false;
+    this.statusMessage = '正在重新加载真实地图';
+    this.mapFailed = false;
+  }
+
+  private onLitRegionNameChanged(_propertyName: string): void {
+    if (this.mapController && this.dialectMarkers.length === this.markers.length) {
+      this.refreshDialectMarkers();
+    }
+  }
+
+  private async refreshDialectMarkers(): Promise<boolean> {
+    if (!this.mapController || this.dialectMarkers.length !== this.markers.length) {
+      return false;
+    }
+
+    const targetLitRegionName = this.litRegionName;
+    try {
+      for (let index = 0; index < this.markers.length; index++) {
+        const markerModel = this.markers[index];
+        const marker = this.dialectMarkers[index];
+        const isLit = markerModel.regionName === targetLitRegionName;
+        marker.setPosition({
+          latitude: markerModel.latitude,
+          longitude: markerModel.longitude
+        });
+        marker.setTitle(markerModel.dialectName);
+        marker.setSnippet((isLit ? '已点亮 · ' : '') +
+          markerModel.regionName + ' · ' + this.formatCount(markerModel.fellowCount));
+        marker.setZIndex(isLit ? 100 : index + 1);
+        await marker.setIcon(isLit ?
+          $r('app.media.dialect_marker_lit') : $r('app.media.dialect_marker'));
+      }
+      if (targetLitRegionName !== this.litRegionName) {
+        return await this.refreshDialectMarkers();
+      }
+      return true;
+    } catch (markerError) {
+      this.failOnlineMap('地图点位刷新失败，请重试');
+      return false;
+    }
+  }
+
+  private promoteOnlineMapIfReady(): void {
+    if (!this.mapFailed && this.mapController && this.mapSurfaceLoaded && this.mapMarkersReady) {
+      this.clearMapLoadTimeout();
+      this.mapReady = true;
+      this.statusMessage = '在线地图已加载';
+    }
+  }
+
+  private detachMapListeners(): void {
+    if (this.mapController && this.mapLoadListener) {
+      this.mapController.off('mapLoad', this.mapLoadListener);
+    }
+    // API 20 的 controller.off('error') 声明与 on('error') 回调类型不一致。
+    // 旧控制器回调由 activeController 身份校验失效，组件卸载后不再改变界面状态。
+    this.mapLoadListener = undefined;
+    this.mapErrorListener = undefined;
+  }
+
   private formatCount(count: number): string {
     return (count / 10000).toFixed(1) + ' 万同乡';
+  }
+
+  private showDialectOverview(): void {
+    if (!this.mapController) {
+      return;
+    }
+    this.mapController.animateCamera(
+      map.newLatLng({
+        latitude: 35.8617,
+        longitude: 104.1954
+      }, 3.2),
+      600
+    );
+    this.locationStatusMessage = '全国视图 · ' +
+      this.markers.length.toString() + ' 个演示方言点位';
   }
 
   private async requestMyLocation(): Promise<void> {

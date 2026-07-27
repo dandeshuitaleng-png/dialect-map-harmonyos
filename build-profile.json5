@@ -1,12 +1,26 @@
 {
   "app": {
-    "signingConfigs": [],
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "/Users/bjl/.ohos/config/default_dialect-map-harmonyos_UAIXS4LjXIsb-dBRmMG9ejdDGF9Jb3xoBeT13eZfNuA=.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001A646F3ABE2419579DBE58B2B1556A38750C637ADBDA060125DFF3B8914E7CE167EC49CFAF9C85",
+          "profile": "/Users/bjl/.ohos/config/default_dialect-map-harmonyos_UAIXS4LjXIsb-dBRmMG9ejdDGF9Jb3xoBeT13eZfNuA=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "/Users/bjl/.ohos/config/default_dialect-map-harmonyos_UAIXS4LjXIsb-dBRmMG9ejdDGF9Jb3xoBeT13eZfNuA=.p12",
+          "storePassword": "0000001A4E992C6B5DD4CF1F5B75C0FD8C8756DD98A5E5C1D98A0ABB6EA232FF3FC1BC15FB217B1BF515"
+        }
+      }
+    ],
     "products": [
       {
         "name": "default",
         "signingConfig": "default",
-        "targetSdkVersion": "5.0.0(12)",
-        "compatibleSdkVersion": "5.0.0(12)",
+        "targetSdkVersion": "6.0.0(20)",
+        "compatibleSdkVersion": "6.0.0(20)",
         "runtimeOS": "HarmonyOS",
         "buildOption": {
           "strictMode": {
@@ -17,8 +31,23 @@
       }
     ],
     "buildModeSet": [
-      { "name": "debug" },
-      { "name": "release" }
+      {
+        "name": "debug"
+      },
+      {
+        "name": "release"
+      }
+    ],
+    "capabilities": [
+      {
+        "bundleName": "com.dialectmap.app",
+        "config": [
+          {
+            "name": "Map Kit",
+            "capability": "com.huawei.service.mapkit"
+          }
+        ]
+      }
     ]
   },
   "modules": [
@@ -28,10 +57,11 @@
       "targets": [
         {
           "name": "default",
-          "applyToProducts": ["default"]
+          "applyToProducts": [
+            "default"
+          ]
         }
       ]
     }
   ]
 }
-

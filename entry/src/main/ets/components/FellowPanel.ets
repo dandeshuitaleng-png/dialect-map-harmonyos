@@ -1,10 +1,17 @@
-import { FellowSource, FellowUser } from '../models/DialectModels';
+import curves from '@ohos.curves';
+import {
+  CommunityGroup,
+  DiscoveryMode,
+  FellowSource,
+  FellowUser,
+  GroupSource
+} from '../models/DialectModels';
 import { filterFellowsBySource } from '../services/MockDialectService';
+import { CommunityGroupList } from './CommunityGroupList';
 
-const PAPER: ResourceColor = $r('app.color.surface_primary');
 const INK: ResourceColor = $r('app.color.ink_primary');
 const MUTED: ResourceColor = $r('app.color.ink_muted');
-const ACCENT: ResourceColor = $r('app.color.accent');
+const ACCENT_TEXT: ResourceColor = $r('app.color.accent_text');
 
 @Component
 export struct FellowPanel {
@@ -14,9 +21,15 @@ export struct FellowPanel {
   @Prop availableHeight: number = 720;
   @Prop litDialectCount: number = 0;
   @Prop totalDialectCount: number = 4;
+  @Prop hasPassport: boolean = false;
+  @Prop groups: CommunityGroup[];
+  @Prop joinedGroupIds: string[];
   @Link expanded: boolean;
+  @Link discoveryMode: DiscoveryMode;
   @Link selectedSource: FellowSource;
+  @Link selectedGroupSource: GroupSource;
   onOpenUser: (userId: string) => void = (_userId: string): void => {};
+  onOpenGroup: (groupId: string) => void = (_groupId: string): void => {};
   onStartAssessment: () => void = (): void => {};
   onOpenPassport: () => void = (): void => {};
   @State panelHeight: number = 0;
@@ -39,160 +52,266 @@ export struct FellowPanel {
           .width('100%')
         }
 
-        Row() {
-          Column({ space: 3 }) {
-            Text('发现同乡')
-              .fontSize(21)
-              .fontWeight(FontWeight.Bold)
+      }
+
+      Row() {
+        Column({ space: 3 }) {
+          Text('乡音地图')
+            .fontSize(12)
+            .fontWeight(FontWeight.Medium)
+            .fontColor(ACCENT_TEXT)
+          Text(this.panelTitle())
+            .fontSize(24)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(INK)
+          Row({ space: 6 }) {
+            Text(this.panelMetricValue())
+              .fontSize(28)
+              .fontWeight(FontWeight.Medium)
               .fontColor(INK)
-            Text(this.litDialectCount.toString() + ' / ' +
-              this.totalDialectCount.toString() + ' 个演示片区已点亮')
+            Text(this.panelMetricLabel())
               .fontSize(12)
               .fontColor(MUTED)
           }
-          .alignItems(HorizontalAlign.Start)
-          Blank()
-          if (!this.wideMode) {
-            Button({ type: ButtonType.Circle }) {
-              Text(this.panelStage >= this.maximumStage() ? '⌄' : '⌃')
-                .fontSize(20)
-                .fontColor(ACCENT)
-            }
-              .width(48)
-              .height(48)
-              .fontColor(ACCENT)
-              .backgroundColor(Color.Transparent)
-              .onClick((): void => { this.advancePanelStage(); })
-              .accessibilityText(
-                this.panelStage >= this.maximumStage() ? '收起同乡面板' : '展开同乡面板'
-              )
-          }
+          .alignItems(VerticalAlign.Bottom)
         }
+        .alignItems(HorizontalAlign.Start)
+        .layoutWeight(1)
+        .accessibilityGroup(true)
+        .accessibilityText(
+          this.panelTitle() + '，' + this.panelMetricValue() + this.panelMetricLabel()
+        )
+
+        if (!this.wideMode) {
+          Button(this.panelStage >= this.maximumStage() ? '收起' : '展开')
+            .fontSize(12)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(ACCENT_TEXT)
+            .height(40)
+            .padding({ left: 14, right: 14 })
+            .backgroundColor($r('app.color.brand_soft'))
+            .borderRadius(20)
+            .onClick((): void => { this.advancePanelStage(); })
+            .accessibilityText(
+              this.panelStage >= this.maximumStage() ? '收起同乡面板' : '展开同乡面板'
+            )
+        }
+      }
+      .width('100%')
+      .padding({
+        left: 20,
+        right: 20,
+        top: this.wideMode ? 24 : 0,
+        bottom: 14
+      })
+      .alignItems(VerticalAlign.Center)
+
+      Row() {
+        DiscoveryModeTab({
+          label: '同乡',
+          selected: this.discoveryMode === DiscoveryMode.FELLOWS,
+          onSelect: (): void => { this.discoveryMode = DiscoveryMode.FELLOWS; }
+        })
+        DiscoveryModeTab({
+          label: '乡音群聊',
+          selected: this.discoveryMode === DiscoveryMode.GROUPS,
+          onSelect: (): void => { this.discoveryMode = DiscoveryMode.GROUPS; }
+        })
+      }
+      .padding(4)
+      .backgroundColor($r('app.color.surface_sunken'))
+      .borderRadius(16)
+      .margin({
+        left: 20,
+        right: 20,
+        bottom: 16
+      })
+      .width('calc(100% - 40vp)')
+      .justifyContent(FlexAlign.Start)
+
+      if (this.discoveryMode === DiscoveryMode.FELLOWS) {
+        Row({ space: 10 }) {
+          Button('录音鉴定')
+            .fontSize(16)
+            .fontWeight(FontWeight.Medium)
+            .fontColor($r('app.color.on_emphasis'))
+            .height(48)
+            .layoutWeight(1)
+            .backgroundColor($r('app.color.accent'))
+            .linearGradient({
+              angle: 100,
+              colors: [
+                [$r('app.color.accent_gradient_start'), 0],
+                [$r('app.color.accent_gradient_end'), 1]
+              ]
+            })
+            .borderRadius(16)
+            .onClick(this.onStartAssessment)
+            .accessibilityText('打开乡音录音鉴定面板')
+
+          Button(this.hasPassport ? '我的乡音护照' : '鉴定后生成护照')
+            .fontSize(16)
+            .fontWeight(FontWeight.Medium)
+            .fontColor(this.hasPassport ? INK : MUTED)
+            .height(48)
+            .layoutWeight(1)
+            .backgroundColor(this.hasPassport ?
+              $r('app.color.surface_elevated') : $r('app.color.surface_disabled'))
+            .borderRadius(16)
+            .border({
+              width: this.hasPassport ? 1 : 0,
+              color: $r('app.color.border')
+            })
+            .enabled(this.hasPassport)
+            .onClick(this.onOpenPassport)
+            .accessibilityText(this.hasPassport ?
+              '打开我的乡音护照' : '完成录音鉴定后生成乡音护照')
+        }
+        .padding({ left: 20, right: 20, bottom: 16 })
         .width('100%')
-        .padding({ left: 20, right: 20, top: this.wideMode ? 24 : 0, bottom: 14 })
-      }
-      .gesture(
-        PanGesture({ fingers: 1, direction: PanDirection.Vertical, distance: 4 })
-          .onActionStart((): void => {
-            this.panelStartHeight = this.currentPanelHeight();
-            this.panelHeight = this.panelStartHeight;
-          })
-          .onActionUpdate((event: GestureEvent): void => {
-            this.panelHeight = this.clampPanelHeight(
-              this.panelStartHeight - event.offsetY
-            );
-          })
-          .onActionEnd((event: GestureEvent): void => {
-            this.settlePanel(event.velocityY);
-          })
-          .onActionCancel((): void => {
-            this.snapToStage(this.panelStage);
-          })
-      )
 
-      Row({ space: 8 }) {
-        SourceTab({
-          label: '附近同乡',
-          selected: this.selectedSource === FellowSource.NEARBY,
-          onSelect: (): void => { this.selectedSource = FellowSource.NEARBY; }
-        })
-        SourceTab({
-          label: '推荐同乡',
-          selected: this.selectedSource === FellowSource.RECOMMENDED,
-          onSelect: (): void => { this.selectedSource = FellowSource.RECOMMENDED; }
-        })
-        SourceTab({
-          label: '当前区域',
-          selected: this.selectedSource === FellowSource.CURRENT_REGION,
-          onSelect: (): void => { this.selectedSource = FellowSource.CURRENT_REGION; }
-        })
-      }
-      .padding({ left: 20, right: 20, bottom: 12 })
-      .width('100%')
-
-      Row({ space: 10 }) {
-        Button('录音鉴定')
-          .fontSize(14)
-          .fontWeight(FontWeight.Bold)
-          .fontColor($r('app.color.on_emphasis'))
-          .height(48)
-          .layoutWeight(1)
-          .backgroundColor(ACCENT)
-          .borderRadius(14)
-          .onClick(this.onStartAssessment)
-          .accessibilityText('打开乡音录音鉴定面板')
-
-        Button('我的乡音护照')
-          .fontSize(14)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(INK)
-          .height(48)
-          .layoutWeight(1)
-          .backgroundColor($r('app.color.surface_muted'))
-          .borderRadius(14)
-          .onClick(this.onOpenPassport)
-          .accessibilityText('打开我的乡音护照')
-      }
-      .padding({ left: 20, right: 20, bottom: 14 })
-      .width('100%')
-
-      List({ space: 10 }) {
-        if (this.visibleUsers().length === 0) {
-          ListItem() {
-            Column({ space: 12 }) {
-              Text('这里还没有可展示的同乡')
-                .fontSize(16)
-                .fontWeight(FontWeight.Bold)
-                .fontColor(INK)
-              Text('可以切换到推荐同乡，或录下第一段乡音。')
-                .fontSize(12)
-                .fontColor(MUTED)
-                .textAlign(TextAlign.Center)
-            }
-            .width('100%')
-            .padding({ left: 24, right: 24, top: 40, bottom: 40 })
-            .accessibilityGroup(true)
-          }
-        } else {
-          ForEach(this.visibleUsers(), (user: FellowUser): void => {
-            ListItem() {
-              FellowCard({ user: user, onOpen: this.onOpenUser })
-            }
-          }, (user: FellowUser): string => user.id)
+        Row({ space: 8 }) {
+          SourceTab({
+            label: '附近同乡',
+            selected: this.selectedSource === FellowSource.NEARBY,
+            onSelect: (): void => { this.selectedSource = FellowSource.NEARBY; }
+          })
+          SourceTab({
+            label: '推荐同乡',
+            selected: this.selectedSource === FellowSource.RECOMMENDED,
+            onSelect: (): void => { this.selectedSource = FellowSource.RECOMMENDED; }
+          })
+          SourceTab({
+            label: '当前区域',
+            selected: this.selectedSource === FellowSource.CURRENT_REGION,
+            onSelect: (): void => { this.selectedSource = FellowSource.CURRENT_REGION; }
+          })
         }
+        .padding(4)
+        .margin({ left: 20, right: 20, bottom: 12 })
+        .backgroundColor($r('app.color.surface_sunken'))
+        .borderRadius(14)
+        .width('calc(100% - 40vp)')
+
+        List({ space: 8 }) {
+          if (this.visibleUsers().length === 0) {
+            ListItem() {
+              Column({ space: 12 }) {
+                Text('这里还没有可展示的同乡')
+                  .fontSize(16)
+                  .fontWeight(FontWeight.Medium)
+                  .fontColor(INK)
+                Text('可以切换到推荐同乡，或录下第一段乡音。')
+                  .fontSize(12)
+                  .fontColor(MUTED)
+                  .textAlign(TextAlign.Center)
+              }
+              .width('100%')
+              .padding({ left: 24, right: 24, top: 40, bottom: 40 })
+              .accessibilityGroup(true)
+            }
+          } else {
+            ForEach(this.visibleUsers(), (user: FellowUser): void => {
+              ListItem() {
+                FellowCard({ user: user, onOpen: this.onOpenUser })
+              }
+            }, (user: FellowUser): string => user.id)
+          }
+        }
+        .margin({ left: 20, right: 20, bottom: 24 })
+        .layoutWeight(1)
+        .width('calc(100% - 40vp)')
+        .scrollBar(BarState.Off)
+        .edgeEffect(EdgeEffect.Spring)
+      } else {
+        CommunityGroupList({
+          groups: this.groups,
+          joinedGroupIds: this.joinedGroupIds,
+          selectedSource: $selectedGroupSource,
+          onOpenGroup: this.onOpenGroup
+        })
       }
-      .padding({ left: 20, right: 20, bottom: 32 })
-      .layoutWeight(1)
-      .scrollBar(BarState.Off)
     }
     .width('100%')
     .height(this.wideMode ? '100%' : this.currentPanelHeight())
-    .backgroundColor(PAPER)
-    .borderRadius({ topLeft: 26, topRight: 26 })
-    .shadow({ radius: 30, color: $r('app.color.shadow_soft'), offsetY: -8 })
+    .backgroundColor($r('app.color.surface_glass'))
+    .backgroundBlurStyle(BlurStyle.Regular)
+    .linearGradient({
+      angle: 115,
+      colors: [
+        [$r('app.color.glass_tint_warm'), 0],
+        [Color.Transparent, 0.46],
+        [$r('app.color.glass_tint_cool'), 1]
+      ]
+    })
+    .borderRadius({ topLeft: 32, topRight: 32 })
+    .border({
+      width: { top: 1, left: 1, right: 1 },
+      color: $r('app.color.surface_glass_highlight')
+    })
+    .shadow({ radius: 24, color: $r('app.color.shadow_soft'), offsetY: -5 })
+    .priorityGesture(
+      PanGesture({ fingers: 1, direction: PanDirection.Vertical, distance: 4 })
+        .onActionStart((): void => {
+          this.panelStartHeight = this.currentPanelHeight();
+          this.panelHeight = this.panelStartHeight;
+        })
+        .onActionUpdate((event: GestureEvent): void => {
+          this.panelHeight = this.clampPanelHeight(
+            this.panelStartHeight - event.offsetY
+          );
+        })
+        .onActionEnd((event: GestureEvent): void => {
+          this.settlePanel(event.velocityY);
+        })
+        .onActionCancel((): void => {
+          this.snapToStage(this.panelStage);
+        })
+    )
   }
 
   private visibleUsers(): FellowUser[] {
     return filterFellowsBySource(this.users, this.selectedSource);
   }
 
+  private panelTitle(): string {
+    if (this.discoveryMode === DiscoveryMode.GROUPS) {
+      return '乡音群聊';
+    }
+    return '发现同乡';
+  }
+
+  private panelMetricValue(): string {
+    if (this.discoveryMode === DiscoveryMode.GROUPS) {
+      return this.joinedGroupIds.length.toString();
+    }
+    return this.litDialectCount.toString();
+  }
+
+  private panelMetricLabel(): string {
+    if (this.discoveryMode === DiscoveryMode.GROUPS) {
+      return '个已加入群聊';
+    }
+    return '/ ' + this.totalDialectCount.toString() + ' 个演示片区已点亮';
+  }
+
   private compactHeight(): number {
     if (this.portraitTabletMode) {
-      return 220;
+      return 336;
     }
-    return Math.min(315, this.availableHeight * 0.46);
+    return Math.min(500, this.availableHeight * 0.64);
   }
 
   private middleHeight(): number {
-    return this.portraitTabletMode ? this.availableHeight * 0.42 : this.maximumHeight();
+    return Math.max(this.compactHeight(), this.availableHeight * 0.76);
   }
 
   private maximumHeight(): number {
-    return this.availableHeight * 0.72;
+    return Math.max(this.middleHeight(), this.availableHeight - 8);
   }
 
   private maximumStage(): number {
-    return this.portraitTabletMode ? 2 : 1;
+    return 2;
   }
 
   private heightForStage(stage: number): number {
@@ -235,7 +354,11 @@ export struct FellowPanel {
 
   private settlePanel(velocityY: number): void {
     let targetStage = this.nearestStage(this.currentPanelHeight());
-    if (velocityY < -600) {
+    if (velocityY < -1200) {
+      targetStage = this.maximumStage();
+    } else if (velocityY > 1200) {
+      targetStage = 0;
+    } else if (velocityY < -600) {
       targetStage = Math.min(this.maximumStage(), targetStage + 1);
     } else if (velocityY > 600) {
       targetStage = Math.max(0, targetStage - 1);
@@ -254,13 +377,41 @@ export struct FellowPanel {
     this.panelStage = stage;
     this.expanded = stage > 0;
     this.getUIContext().animateTo({
-      duration: 220,
-      curve: Curve.EaseOut
+      curve: curves.responsiveSpringMotion()
     }, (): void => {
       this.panelHeight = targetHeight;
     });
   }
 
+}
+
+@Component
+struct DiscoveryModeTab {
+  @Prop label: string;
+  @Prop selected: boolean;
+  onSelect: () => void = (): void => {};
+
+  build() {
+    Button({ type: ButtonType.Normal }) {
+      Text(this.label)
+        .fontSize(16)
+        .fontWeight(this.selected ? FontWeight.Bold : FontWeight.Medium)
+        .fontColor(this.selected ? INK : MUTED)
+    }
+    .height(44)
+    .layoutWeight(1)
+    .backgroundColor(this.selected ?
+      $r('app.color.surface_elevated') : Color.Transparent)
+    .borderRadius(12)
+    .shadow({
+      radius: this.selected ? 4 : 0,
+      color: $r('app.color.shadow_card'),
+      offsetY: this.selected ? 1 : 0
+    })
+    .onClick(this.onSelect)
+    .animation({ duration: 150, curve: Curve.EaseOut })
+    .accessibilityText(this.label + (this.selected ? '，当前栏目' : ''))
+  }
 }
 
 @Component
@@ -271,14 +422,16 @@ struct SourceTab {
 
   build() {
     Button(this.label)
-      .fontSize(12)
-      .fontWeight(this.selected ? FontWeight.Bold : FontWeight.Medium)
-      .fontColor(this.selected ? $r('app.color.on_emphasis') : MUTED)
-      .height(48)
+      .fontSize(14)
+      .fontWeight(this.selected ? FontWeight.Bold : FontWeight.Regular)
+      .fontColor(this.selected ? ACCENT_TEXT : MUTED)
+      .height(40)
       .layoutWeight(1)
-      .backgroundColor(this.selected ? INK : $r('app.color.surface_muted'))
+      .backgroundColor(this.selected ?
+        $r('app.color.surface_elevated') : Color.Transparent)
       .borderRadius(10)
       .onClick(this.onSelect)
+      .animation({ duration: 150, curve: Curve.EaseOut })
       .accessibilityText(this.label + (this.selected ? '，已选中' : ''))
   }
 }
@@ -298,21 +451,21 @@ struct FellowCard {
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.on_emphasis'))
         }
-        .width(44)
-        .height(44)
-        .borderRadius(22)
+        .width(48)
+        .height(48)
+        .borderRadius(24)
         .backgroundColor(this.avatarColor())
 
         Column({ space: 4 }) {
           Row() {
             Text(this.user.nickname)
-              .fontSize(15)
-              .fontWeight(FontWeight.Bold)
+              .fontSize(16)
+              .fontWeight(FontWeight.Medium)
               .fontColor(INK)
             Text(this.user.dialectName)
               .fontSize(12)
-              .fontColor(ACCENT)
-              .backgroundColor($r('app.color.surface_accent_soft'))
+              .fontColor(ACCENT_TEXT)
+              .backgroundColor($r('app.color.brand_soft'))
               .borderRadius(6)
               .padding({ left: 6, right: 6, top: 3, bottom: 3 })
               .margin({ left: 8 })
@@ -327,13 +480,15 @@ struct FellowCard {
 
         Text('›')
           .fontSize(24)
-          .fontColor($r('app.color.ink_tertiary'))
+          .fontWeight(FontWeight.Medium)
+          .fontColor(MUTED)
       }
       .width('100%')
     }
     .width('100%')
-    .padding(14)
-    .backgroundColor($r('app.color.surface_pure'))
+    .height(76)
+    .padding({ left: 14, right: 14 })
+    .backgroundColor($r('app.color.surface_elevated'))
     .borderRadius(14)
     .border({
       width: this.focused ? 2 : 1,

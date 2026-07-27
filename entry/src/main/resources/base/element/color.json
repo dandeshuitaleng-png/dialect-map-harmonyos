@@ -2,67 +2,119 @@
   "color": [
     {
       "name": "start_window_background",
-      "value": "#F4EFE5"
+      "value": "#F8F6F1"
     },
     {
       "name": "background_page",
-      "value": "#F4EFE5"
+      "value": "#F8F6F1"
     },
     {
       "name": "background_map",
-      "value": "#DDE5DC"
+      "value": "#A9BBC1"
     },
     {
       "name": "surface_primary",
-      "value": "#FFFCF6"
+      "value": "#F8F6F1"
     },
     {
       "name": "surface_pure",
-      "value": "#FFFFFF"
+      "value": "#F8F6F1"
     },
     {
       "name": "surface_muted",
-      "value": "#F1EEE7"
+      "value": "#E5E1D8"
+    },
+    {
+      "name": "surface_elevated",
+      "value": "#F8F6F1"
+    },
+    {
+      "name": "passport_surface",
+      "value": "#FFFDF8"
+    },
+    {
+      "name": "passport_surface_tint",
+      "value": "#EEF4EA"
+    },
+    {
+      "name": "surface_glass",
+      "value": "#70F8F6F1"
+    },
+    {
+      "name": "surface_glass_highlight",
+      "value": "#E6FFFFFF"
+    },
+    {
+      "name": "glass_tint_warm",
+      "value": "#2EF6E4D4"
+    },
+    {
+      "name": "glass_tint_cool",
+      "value": "#36CFEFF3"
+    },
+    {
+      "name": "surface_sunken",
+      "value": "#E5E1D8"
+    },
+    {
+      "name": "brand_soft",
+      "value": "#E5E1D8"
     },
     {
       "name": "surface_accent_soft",
-      "value": "#FFF0E6"
+      "value": "#E5E1D8"
     },
     {
       "name": "surface_confirm_soft",
-      "value": "#EAF3EF"
+      "value": "#DDEBE7"
     },
     {
       "name": "surface_disabled",
-      "value": "#E9E2D7"
+      "value": "#E5E1D8"
     },
     {
       "name": "surface_recording",
-      "value": "#F8D9CA"
+      "value": "#E5E1D8"
     },
     {
       "name": "ink_primary",
-      "value": "#173A32"
-    },
-    {
-      "name": "ink_secondary",
-      "value": "#556A61"
+      "value": "#1F2430"
     },
     {
       "name": "ink_muted",
-      "value": "#6D7771"
+      "value": "#5B626E"
     },
     {
       "name": "ink_tertiary",
-      "value": "#9BA49F"
+      "value": "#616A75"
     },
     {
       "name": "accent",
-      "value": "#DB643D"
+      "value": "#8F3F34"
+    },
+    {
+      "name": "accent_gradient_start",
+      "value": "#76342C"
+    },
+    {
+      "name": "accent_gradient_end",
+      "value": "#A64B3C"
+    },
+    {
+      "name": "accent_text",
+      "value": "#8F3F34"
     },
     {
       "name": "confirm",
-      "value": "#2F7766"
+      "value": "#2B6965"
+    },
+    {
+      "name": "confirm_text",
+      "value": "#2B6965"
+    },
+    {
+      "name": "danger",
+      "value": "#A13228"
     },
     {
       "name": "on_emphasis",
@@ -70,47 +122,55 @@
     },
     {
       "name": "on_emphasis_secondary",
-      "value": "#E7F0EC"
+      "value": "#FFFFFF"
     },
     {
       "name": "divider",
-      "value": "#E3DED4"
+      "value": "#E5E1D8"
     },
     {
       "name": "border",
-      "value": "#E9E3D9"
+      "value": "#E5E1D8"
     },
     {
       "name": "focus",
-      "value": "#0A59F7"
+      "value": "#8F3F34"
     },
     {
       "name": "map_overlay",
-      "value": "#B815372E"
+      "value": "#B81F2430"
+    },
+    {
+      "name": "map_image_tint",
+      "value": "#19A9BBC1"
     },
     {
       "name": "shadow_soft",
-      "value": "#2E1F4B40"
+      "value": "#1A000000"
+    },
+    {
+      "name": "shadow_card",
+      "value": "#12000000"
     },
     {
       "name": "shadow_accent",
-      "value": "#4D933D22"
+      "value": "#33C65D4B"
     },
     {
       "name": "avatar_cantonese",
-      "value": "#3A7D6E"
+      "value": "#2B6965"
     },
     {
       "name": "avatar_shanghai",
-      "value": "#547CAD"
+      "value": "#4F6687"
     },
     {
       "name": "avatar_beijing",
-      "value": "#9D624E"
+      "value": "#8A562F"
     },
     {
       "name": "avatar_default",
-      "value": "#D88755"
+      "value": "#59616D"
     }
   ]
 }

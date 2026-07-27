@@ -2,115 +2,175 @@
   "color": [
     {
       "name": "start_window_background",
-      "value": "#171A18"
+      "value": "#000000"
     },
     {
       "name": "background_page",
-      "value": "#171A18"
+      "value": "#000000"
     },
     {
       "name": "background_map",
-      "value": "#202823"
+      "value": "#191A1C"
     },
     {
       "name": "surface_primary",
-      "value": "#202422"
+      "value": "#191A1C"
     },
     {
       "name": "surface_pure",
-      "value": "#252A27"
+      "value": "#202224"
     },
     {
       "name": "surface_muted",
-      "value": "#303532"
+      "value": "#202224"
     },
     {
-      "name": "surface_accent_soft",
-      "value": "#472A22"
+      "name": "surface_elevated",
+      "value": "#202224"
     },
     {
-      "name": "surface_confirm_soft",
-      "value": "#1E3932"
+      "name": "passport_surface",
+      "value": "#242526"
     },
     {
-      "name": "surface_disabled",
-      "value": "#343A36"
+      "name": "passport_surface_tint",
+      "value": "#1F302A"
     },
     {
-      "name": "surface_recording",
-      "value": "#563126"
+      "name": "surface_glass",
+      "value": "#801B1D20"
     },
     {
-      "name": "ink_primary",
-      "value": "#E6F2ED"
-    },
-    {
-      "name": "ink_secondary",
-      "value": "#B8C9C1"
-    },
-    {
-      "name": "ink_muted",
-      "value": "#AAB5B0"
-    },
-    {
-      "name": "ink_tertiary",
-      "value": "#87928D"
-    },
-    {
-      "name": "accent",
-      "value": "#F07A52"
-    },
-    {
-      "name": "confirm",
-      "value": "#72B6A3"
-    },
-    {
-      "name": "on_emphasis",
-      "value": "#FFFFFF"
-    },
-    {
-      "name": "on_emphasis_secondary",
-      "value": "#DCEAE4"
-    },
-    {
-      "name": "divider",
+      "name": "surface_glass_highlight",
       "value": "#4DFFFFFF"
     },
     {
+      "name": "glass_tint_warm",
+      "value": "#382D2435"
+    },
+    {
+      "name": "glass_tint_cool",
+      "value": "#4D245C78"
+    },
+    {
+      "name": "surface_sunken",
+      "value": "#0F1011"
+    },
+    {
+      "name": "brand_soft",
+      "value": "#1B293F"
+    },
+    {
+      "name": "surface_accent_soft",
+      "value": "#1B293F"
+    },
+    {
+      "name": "surface_confirm_soft",
+      "value": "#1D2B20"
+    },
+    {
+      "name": "surface_disabled",
+      "value": "#2E3033"
+    },
+    {
+      "name": "surface_recording",
+      "value": "#2B2020"
+    },
+    {
+      "name": "ink_primary",
+      "value": "#F2F2F2"
+    },
+    {
+      "name": "ink_muted",
+      "value": "#B4B5B7"
+    },
+    {
+      "name": "ink_tertiary",
+      "value": "#949699"
+    },
+    {
+      "name": "accent",
+      "value": "#1759B8"
+    },
+    {
+      "name": "accent_gradient_start",
+      "value": "#124789"
+    },
+    {
+      "name": "accent_gradient_end",
+      "value": "#1A67C7"
+    },
+    {
+      "name": "accent_text",
+      "value": "#9ABEFF"
+    },
+    {
+      "name": "confirm",
+      "value": "#2F6D39"
+    },
+    {
+      "name": "confirm_text",
+      "value": "#A2D99B"
+    },
+    {
+      "name": "danger",
+      "value": "#FF8075"
+    },
+    {
+      "name": "on_emphasis",
+      "value": "#FFFDF8"
+    },
+    {
+      "name": "on_emphasis_secondary",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "divider",
+      "value": "#33FFFFFF"
+    },
+    {
       "name": "border",
-      "value": "#3DFFFFFF"
+      "value": "#19FFFFFF"
     },
     {
       "name": "focus",
-      "value": "#317AF7"
+      "value": "#6EA0FF"
     },
     {
       "name": "map_overlay",
-      "value": "#CC10251F"
+      "value": "#D9142221"
+    },
+    {
+      "name": "map_image_tint",
+      "value": "#19317AF7"
     },
     {
       "name": "shadow_soft",
-      "value": "#66000000"
+      "value": "#52000000"
+    },
+    {
+      "name": "shadow_card",
+      "value": "#40000000"
     },
     {
       "name": "shadow_accent",
-      "value": "#80401911"
+      "value": "#66317AF7"
     },
     {
       "name": "avatar_cantonese",
-      "value": "#4E9A89"
+      "value": "#315C4D"
     },
     {
       "name": "avatar_shanghai",
-      "value": "#6C92C2"
+      "value": "#435875"
     },
     {
       "name": "avatar_beijing",
-      "value": "#B77963"
+      "value": "#5B4E78"
     },
     {
       "name": "avatar_default",
-      "value": "#E19A6B"
+      "value": "#465D82"
     }
   ]
 }
