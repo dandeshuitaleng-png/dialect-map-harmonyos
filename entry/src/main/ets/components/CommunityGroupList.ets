@@ -24,7 +24,7 @@ export struct CommunityGroupList {
             .fontSize(16)
             .fontWeight(FontWeight.Bold)
             .fontColor(INK)
-          Text('本机演示')
+          Text('本机样例')
             .fontSize(10)
             .fontWeight(FontWeight.Bold)
             .fontColor(ACCENT_TEXT)
@@ -34,7 +34,7 @@ export struct CommunityGroupList {
         }
         .width('100%')
 
-        Text('从一句乡音、一个称呼或一段共同记忆开始交流')
+        Text('从一句乡音、一个称呼或一段共同记忆开始体验')
           .fontSize(12)
           .fontColor(MUTED)
           .maxLines(2)
@@ -45,11 +45,11 @@ export struct CommunityGroupList {
       .accessibilityGroup(true)
 
       Row({ space: 9 }) {
-        Text('内容未同步')
+        Text('本机样例')
           .fontSize(11)
           .fontWeight(FontWeight.Bold)
           .fontColor(ACCENT_TEXT)
-        Text('加入、回应、举报与屏蔽只在本次运行中生效')
+        Text('人物与话题不是实际用户；加入和回应只在本次运行中生效')
           .fontSize(11)
           .fontColor(MUTED)
           .maxLines(2)
@@ -158,7 +158,7 @@ export struct CommunityGroupList {
     if (this.selectedSource === GroupSource.JOINED) {
       return '还没有加入话题组';
     }
-    return '该分类暂时没有群聊';
+    return '该分类暂时没有体验会话';
   }
 
   private emptyDescription(): string {

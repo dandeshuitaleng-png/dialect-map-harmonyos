@@ -7,16 +7,21 @@
       "arkOptions": {
         "obfuscation": {
           "ruleOptions": {
-            "enable": false,
-            "files": []
+            "enable": true,
+            "files": [
+              "./obfuscation-rules.txt"
+            ]
           }
         }
       }
     }
   ],
   "targets": [
-    { "name": "default" },
-    { "name": "ohosTest" }
+    {
+      "name": "default"
+    },
+    {
+      "name": "ohosTest"
+    }
   ]
 }
-

@@ -1,16 +1,16 @@
 {
   "color": [
     {
-      "name": "start_window_background",
-      "value": "#F8F6F1"
+      "name": "app_start_window_background",
+      "value": "#F8F7F1"
     },
     {
       "name": "background_page",
-      "value": "#F8F6F1"
+      "value": "#F8F7F1"
     },
     {
       "name": "background_map",
-      "value": "#A9BBC1"
+      "value": "#A7C6BD"
     },
     {
       "name": "surface_primary",
@@ -38,7 +38,7 @@
     },
     {
       "name": "surface_glass",
-      "value": "#70F8F6F1"
+      "value": "#C9F5F4ED"
     },
     {
       "name": "surface_glass_highlight",
@@ -46,23 +46,23 @@
     },
     {
       "name": "glass_tint_warm",
-      "value": "#2EF6E4D4"
+      "value": "#4DE9EDCF"
     },
     {
       "name": "glass_tint_cool",
-      "value": "#36CFEFF3"
+      "value": "#66D8EAF5"
     },
     {
       "name": "surface_sunken",
-      "value": "#E5E1D8"
+      "value": "#E7EAE4"
     },
     {
       "name": "brand_soft",
-      "value": "#E5E1D8"
+      "value": "#DDEDE8"
     },
     {
       "name": "surface_accent_soft",
-      "value": "#E5E1D8"
+      "value": "#DDEDE8"
     },
     {
       "name": "surface_confirm_soft",
@@ -90,27 +90,27 @@
     },
     {
       "name": "accent",
-      "value": "#8F3F34"
+      "value": "#28766F"
     },
     {
       "name": "accent_gradient_start",
-      "value": "#76342C"
+      "value": "#165F5A"
     },
     {
       "name": "accent_gradient_end",
-      "value": "#A64B3C"
+      "value": "#328980"
     },
     {
       "name": "accent_text",
-      "value": "#8F3F34"
+      "value": "#28766F"
     },
     {
       "name": "confirm",
-      "value": "#2B6965"
+      "value": "#28766F"
     },
     {
       "name": "confirm_text",
-      "value": "#2B6965"
+      "value": "#28766F"
     },
     {
       "name": "danger",
@@ -134,7 +134,7 @@
     },
     {
       "name": "focus",
-      "value": "#8F3F34"
+      "value": "#28766F"
     },
     {
       "name": "map_overlay",

@@ -6,15 +6,15 @@
     },
     {
       "name": "ability_description",
-      "value": "浏览全国乡音并生成乡音护照"
+      "value": "浏览方言代表点并生成本机乡音护照"
     },
     {
       "name": "entry_label",
-      "value": "乡音地图"
+      "value": "乡音+"
     },
     {
       "name": "location_permission_reason",
-      "value": "用于在全国乡音地图中显示你的当前位置，帮助发现附近同乡"
+      "value": "用于在乡音地图中显示并居中到你的当前位置；不会记录或上传坐标"
     },
     {
       "name": "microphone_permission_reason",

@@ -12,3 +12,11 @@ local.properties
 *.hsp
 *.app
 target/
+
+# Local signing material, IDE recovery data, and generated deployment artifacts.
+HarmonySign/
+.deveco-idea-backup-*/
+.temp-*.json
+deploy/**/__pycache__/
+deploy/*.tar.gz
+deploy/.DS_Store

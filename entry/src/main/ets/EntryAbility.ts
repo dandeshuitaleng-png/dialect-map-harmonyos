@@ -13,8 +13,6 @@ export default class EntryAbility extends UIAbility {
         hilog.error(LOG_DOMAIN, LOG_TAG, 'Failed to load Index. Code: %{public}d', error.code);
         return;
       }
-      hilog.info(LOG_DOMAIN, LOG_TAG, 'Index loaded');
     });
   }
 }
-

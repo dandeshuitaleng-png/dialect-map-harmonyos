@@ -7,12 +7,34 @@ export struct CommunityChatComposer {
   @Prop disabledHint: string = '加入后可发言';
   @Prop feedback: string = '';
   @Prop feedbackIsError: boolean = false;
+  @Prop voiceStateLabel: string = '';
+  @Prop voiceActive: boolean = false;
+  @Prop voiceReady: boolean = false;
+  @Prop voiceActionInFlight: boolean = false;
   onDraftChange: (value: string) => void = (_value: string): void => {};
   onSend: () => void = (): void => {};
+  onVoiceAction: () => void = (): void => {};
+  onVoiceCancel: () => void = (): void => {};
+  onVoicePlay: () => void = (): void => {};
+  onVoiceSend: () => void = (): void => {};
 
   build() {
     Column({ space: 6 }) {
       Row({ space: 10 }) {
+        Button(this.voiceActive ? '停止' : '语音')
+          .fontSize(13)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(this.canSend ?
+            $r('app.color.accent_text') : $r('app.color.ink_muted'))
+          .height(48)
+          .width(58)
+          .backgroundColor(this.voiceActive ?
+            $r('app.color.surface_recording') : $r('app.color.brand_soft'))
+          .borderRadius(14)
+          .enabled(this.canSend && !this.voiceActionInFlight)
+          .onClick(this.onVoiceAction)
+          .accessibilityText(this.voiceActive ? '停止体验会话语音录制' : '开始体验会话语音录制')
+
         TextInput({
           text: this.draft,
           placeholder: this.canSend ? '发一条本机消息…' : this.disabledHint
@@ -50,7 +72,7 @@ export struct CommunityChatComposer {
           })
           .accessibilityText(
             this.canSend ?
-              '群聊消息输入框，消息仅保存在当前本机会话，最多' +
+              '体验会话消息输入框，消息仅保存在当前本机会话，最多' +
                 COMMUNITY_MESSAGE_MAX_LENGTH.toString() + '个字' :
               this.disabledHint
           )
@@ -71,6 +93,44 @@ export struct CommunityChatComposer {
             '发送到当前本机会话，不会同步' : this.disabledHint)
       }
       .width('100%')
+
+      if (this.voiceStateLabel.length > 0) {
+        Row() {
+          Text(this.voiceStateLabel)
+            .fontSize(11)
+            .fontColor(this.feedbackIsError ?
+              $r('app.color.danger') : $r('app.color.accent_text'))
+            .layoutWeight(1)
+          if (this.voiceReady) {
+            Button('试听')
+              .height(40)
+              .fontSize(11)
+              .fontColor($r('app.color.accent_text'))
+              .backgroundColor(Color.Transparent)
+              .enabled(this.canSend && !this.voiceActionInFlight)
+              .onClick(this.onVoicePlay)
+            Button('发送语音')
+              .height(40)
+              .fontSize(11)
+              .fontWeight(FontWeight.Bold)
+              .fontColor($r('app.color.on_emphasis'))
+              .backgroundColor($r('app.color.accent'))
+              .borderRadius(12)
+              .enabled(this.canSend && !this.voiceActionInFlight)
+              .onClick(this.onVoiceSend)
+          }
+          if (this.voiceActive || this.voiceReady) {
+            Button('取消')
+              .height(40)
+              .fontSize(11)
+              .fontColor($r('app.color.ink_muted'))
+              .backgroundColor(Color.Transparent)
+              .enabled(!this.voiceActionInFlight)
+              .onClick(this.onVoiceCancel)
+          }
+        }
+        .width('100%')
+      }
 
       Row() {
         Text(this.statusText())
@@ -102,6 +162,6 @@ export struct CommunityChatComposer {
       return this.disabledHint;
     }
     return this.feedback.length > 0 ?
-      this.feedback : '本次运行有效 · 消息不会同步';
+      this.feedback : '支持文字与语音消息';
   }
 }

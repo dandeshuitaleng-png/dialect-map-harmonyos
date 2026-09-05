@@ -2,8 +2,11 @@
   "string": [
     {
       "name": "app_name",
-      "value": "乡音地图"
+      "value": "乡音+"
+    },
+    {
+      "name": "app_description",
+      "value": "浏览方言代表点，录下乡音并生成仅保存在本机的乡音护照"
     }
   ]
 }
-

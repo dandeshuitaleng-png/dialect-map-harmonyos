@@ -22,6 +22,7 @@ export struct FellowPanel {
   @Prop litDialectCount: number = 0;
   @Prop totalDialectCount: number = 4;
   @Prop hasPassport: boolean = false;
+  @Prop selectedRegionName: string = '';
   @Prop groups: CommunityGroup[];
   @Prop joinedGroupIds: string[];
   @Link expanded: boolean;
@@ -32,6 +33,10 @@ export struct FellowPanel {
   onOpenGroup: (groupId: string) => void = (_groupId: string): void => {};
   onStartAssessment: () => void = (): void => {};
   onOpenPassport: () => void = (): void => {};
+  onOpenDirectory: () => void = (): void => {};
+  onOpenDailyChallenge: () => void = (): void => {};
+  onOpenPrivacy: () => void = (): void => {};
+  onSelectRegion: (regionName: string) => void = (_regionName: string): void => {};
   @State panelHeight: number = 0;
   @State panelStage: number = 0;
   private panelStartHeight: number = 0;
@@ -55,25 +60,14 @@ export struct FellowPanel {
       }
 
       Row() {
-        Column({ space: 3 }) {
-          Text('乡音地图')
-            .fontSize(12)
-            .fontWeight(FontWeight.Medium)
-            .fontColor(ACCENT_TEXT)
-          Text(this.panelTitle())
-            .fontSize(24)
+        Column({ space: 5 }) {
+          Text('用声音点亮中国')
+            .fontSize(25)
             .fontWeight(FontWeight.Bold)
             .fontColor(INK)
-          Row({ space: 6 }) {
-            Text(this.panelMetricValue())
-              .fontSize(28)
-              .fontWeight(FontWeight.Medium)
-              .fontColor(INK)
-            Text(this.panelMetricLabel())
-              .fontSize(12)
-              .fontColor(MUTED)
-          }
-          .alignItems(VerticalAlign.Bottom)
+          Text('已点亮 ' + this.litDialectCount.toString() + ' / ' + this.totalDialectCount.toString() + ' 个方言代表点 · 0 点能量')
+            .fontSize(14)
+            .fontColor(MUTED)
         }
         .alignItems(HorizontalAlign.Start)
         .layoutWeight(1)
@@ -82,19 +76,15 @@ export struct FellowPanel {
           this.panelTitle() + '，' + this.panelMetricValue() + this.panelMetricLabel()
         )
 
-        if (!this.wideMode) {
-          Button(this.panelStage >= this.maximumStage() ? '收起' : '展开')
-            .fontSize(12)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(ACCENT_TEXT)
-            .height(40)
-            .padding({ left: 14, right: 14 })
-            .backgroundColor($r('app.color.brand_soft'))
-            .borderRadius(20)
-            .onClick((): void => { this.advancePanelStage(); })
-            .accessibilityText(
-              this.panelStage >= this.maximumStage() ? '收起同乡面板' : '展开同乡面板'
-            )
+        Column({ space: 8 }) {
+          Button({ type: ButtonType.Circle }) {
+            Text(this.panelStage >= this.maximumStage() ? '⌄' : '⌃')
+              .fontSize(26).fontWeight(FontWeight.Bold).fontColor(ACCENT_TEXT)
+          }
+          .width(52).height(52)
+          .backgroundColor($r('app.color.brand_soft'))
+          .onClick((): void => { this.advancePanelStage(); })
+          .accessibilityText(this.panelStage >= this.maximumStage() ? '收起探索面板' : '展开探索面板')
         }
       }
       .width('100%')
@@ -108,12 +98,12 @@ export struct FellowPanel {
 
       Row() {
         DiscoveryModeTab({
-          label: '同乡',
+          label: '乡音人物',
           selected: this.discoveryMode === DiscoveryMode.FELLOWS,
           onSelect: (): void => { this.discoveryMode = DiscoveryMode.FELLOWS; }
         })
         DiscoveryModeTab({
-          label: '乡音群聊',
+          label: '体验会话',
           selected: this.discoveryMode === DiscoveryMode.GROUPS,
           onSelect: (): void => { this.discoveryMode = DiscoveryMode.GROUPS; }
         })
@@ -130,6 +120,20 @@ export struct FellowPanel {
       .justifyContent(FlexAlign.Start)
 
       if (this.discoveryMode === DiscoveryMode.FELLOWS) {
+        Button({ type: ButtonType.Normal }) {
+          this.dailyChallengeCard()
+        }
+        .width('calc(100% - 40vp)')
+        .height(104)
+        .margin({ left: 20, right: 20, bottom: 16 })
+        .backgroundColor($r('app.color.accent'))
+        .borderRadius(24)
+        .linearGradient({
+          angle: 0,
+          colors: [[$r('app.color.accent_gradient_start'), 0], [$r('app.color.accent_gradient_end'), 1]]
+        })
+        .onClick(this.onOpenDailyChallenge)
+        .accessibilityText('今日乡音挑战，听一句，猜一座城')
         Row({ space: 10 }) {
           Button('录音鉴定')
             .fontSize(16)
@@ -172,17 +176,17 @@ export struct FellowPanel {
 
         Row({ space: 8 }) {
           SourceTab({
-            label: '附近同乡',
+            label: '附近',
             selected: this.selectedSource === FellowSource.NEARBY,
             onSelect: (): void => { this.selectedSource = FellowSource.NEARBY; }
           })
           SourceTab({
-            label: '推荐同乡',
+            label: '推荐',
             selected: this.selectedSource === FellowSource.RECOMMENDED,
             onSelect: (): void => { this.selectedSource = FellowSource.RECOMMENDED; }
           })
           SourceTab({
-            label: '当前区域',
+            label: '当前地区',
             selected: this.selectedSource === FellowSource.CURRENT_REGION,
             onSelect: (): void => { this.selectedSource = FellowSource.CURRENT_REGION; }
           })
@@ -193,15 +197,42 @@ export struct FellowPanel {
         .borderRadius(14)
         .width('calc(100% - 40vp)')
 
+        Row({ space: 8 }) {
+          Text(this.selectedRegionName.length > 0 ?
+            '已选：' + this.selectedRegionName : '定位不可用也能手动选地区')
+            .fontSize(12)
+            .fontColor(MUTED)
+            .layoutWeight(1)
+            .maxLines(1)
+
+          Button('手动选地区')
+            .fontSize(12)
+            .fontColor(ACCENT_TEXT)
+            .height(40)
+            .padding({ left: 14, right: 14 })
+            .backgroundColor($r('app.color.brand_soft'))
+            .borderRadius(20)
+            .bindMenu([
+              { value: '四川', action: (): void => { this.selectRegion('四川'); } },
+              { value: '重庆', action: (): void => { this.selectRegion('重庆'); } },
+              { value: '广州', action: (): void => { this.selectRegion('广州'); } },
+              { value: '上海', action: (): void => { this.selectRegion('上海'); } },
+              { value: '北京', action: (): void => { this.selectRegion('北京'); } }
+            ])
+            .accessibilityText('手动选择地区')
+        }
+        .padding({ left: 20, right: 20, bottom: 12 })
+        .width('100%')
+
         List({ space: 8 }) {
           if (this.visibleUsers().length === 0) {
             ListItem() {
               Column({ space: 12 }) {
-                Text('这里还没有可展示的同乡')
+                Text('暂无乡音人物')
                   .fontSize(16)
                   .fontWeight(FontWeight.Medium)
                   .fontColor(INK)
-                Text('可以切换到推荐同乡，或录下第一段乡音。')
+                Text('录下你的第一段乡音，点亮地图。')
                   .fontSize(12)
                   .fontColor(MUTED)
                   .textAlign(TextAlign.Center)
@@ -271,14 +302,60 @@ export struct FellowPanel {
   }
 
   private visibleUsers(): FellowUser[] {
+    if (this.selectedSource === FellowSource.CURRENT_REGION &&
+      this.selectedRegionName.length > 0) {
+      return this.users.filter((user: FellowUser): boolean =>
+        user.location.indexOf(this.selectedRegionName) >= 0
+      );
+    }
     return filterFellowsBySource(this.users, this.selectedSource);
+  }
+
+  private selectRegion(regionName: string): void {
+    this.selectedSource = FellowSource.CURRENT_REGION;
+    this.onSelectRegion(regionName);
+  }
+
+  @Builder
+  private dailyChallengeCard() {
+    Row({ space: 14 }) {
+      Text('✦')
+        .fontSize(34)
+        .fontColor($r('app.color.on_emphasis'))
+        .width(62)
+        .height(62)
+        .textAlign(TextAlign.Center)
+        .padding({ top: 11 })
+        .backgroundColor('#337FFFFFF')
+        .borderRadius(31)
+      Column({ space: 5 }) {
+        Text('今日乡音挑战')
+          .fontSize(13)
+          .fontWeight(FontWeight.Medium)
+          .fontColor($r('app.color.on_emphasis_secondary'))
+        Text('听一句，猜一座城')
+          .fontSize(22)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.on_emphasis'))
+      }
+      .layoutWeight(1)
+      .alignItems(HorizontalAlign.Start)
+      Text('↗')
+        .fontSize(30)
+        .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.on_emphasis'))
+    }
+    .width('100%')
+    .height('100%')
+    .padding({ left: 18, right: 20 })
+    .alignItems(VerticalAlign.Center)
   }
 
   private panelTitle(): string {
     if (this.discoveryMode === DiscoveryMode.GROUPS) {
-      return '乡音群聊';
+      return '本机体验会话';
     }
-    return '发现同乡';
+    return '浏览乡音人物';
   }
 
   private panelMetricValue(): string {
@@ -290,9 +367,9 @@ export struct FellowPanel {
 
   private panelMetricLabel(): string {
     if (this.discoveryMode === DiscoveryMode.GROUPS) {
-      return '个已加入群聊';
+      return '个本机已加入会话';
     }
-    return '/ ' + this.totalDialectCount.toString() + ' 个演示片区已点亮';
+    return '/ ' + this.totalDialectCount.toString() + ' 个代表点已点亮';
   }
 
   private compactHeight(): number {

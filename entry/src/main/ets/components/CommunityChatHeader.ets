@@ -29,7 +29,7 @@ export struct CommunityChatHeader {
             .fontColor($r('app.color.ink_primary'))
             .maxLines(1)
           Text(this.group.regionName + ' · ' + this.group.dialectName +
-            ' · ' + this.group.memberCount.toString() + ' 人关注')
+            ' · 本机体验')
             .fontSize(11)
             .fontColor($r('app.color.ink_muted'))
             .maxLines(1)
@@ -64,12 +64,12 @@ export struct CommunityChatHeader {
           .backgroundColor($r('app.color.brand_soft'))
           .borderRadius(8)
 
-        Text('本机演示 · 未同步')
+        Text('预置样例 · 未同步')
           .fontSize(10)
           .fontColor($r('app.color.ink_muted'))
           .layoutWeight(1)
 
-        Button('群规与安全')
+        Button('说明与设置')
           .fontSize(11)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.accent_text'))
@@ -77,7 +77,7 @@ export struct CommunityChatHeader {
           .padding({ left: 10, right: 10 })
           .backgroundColor(Color.Transparent)
           .onClick(this.onSafety)
-          .accessibilityText('查看群规、隐私、举报和屏蔽选项')
+          .accessibilityText('查看体验说明、隐私和本机屏蔽选项')
       }
       .width('100%')
     }

@@ -1,7 +1,7 @@
 {
   "color": [
     {
-      "name": "start_window_background",
+      "name": "app_start_window_background",
       "value": "#000000"
     },
     {
@@ -90,27 +90,27 @@
     },
     {
       "name": "accent",
-      "value": "#1759B8"
+      "value": "#28766F"
     },
     {
       "name": "accent_gradient_start",
-      "value": "#124789"
+      "value": "#165F5A"
     },
     {
       "name": "accent_gradient_end",
-      "value": "#1A67C7"
+      "value": "#328980"
     },
     {
       "name": "accent_text",
-      "value": "#9ABEFF"
+      "value": "#8EDDD4"
     },
     {
       "name": "confirm",
-      "value": "#2F6D39"
+      "value": "#28766F"
     },
     {
       "name": "confirm_text",
-      "value": "#A2D99B"
+      "value": "#8EDDD4"
     },
     {
       "name": "danger",
@@ -134,7 +134,7 @@
     },
     {
       "name": "focus",
-      "value": "#6EA0FF"
+      "value": "#8EDDD4"
     },
     {
       "name": "map_overlay",

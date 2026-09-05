@@ -8,6 +8,7 @@ import {
 import { MapComponent, map, mapCommon } from '@kit.MapKit';
 import { geoLocationManager } from '@kit.LocationKit';
 import { MapMarker } from '../models/DialectModels';
+import { LocalDialectPointMap } from './LocalDialectPointMap';
 
 const DEFAULT_CAMERA_POSITION: mapCommon.CameraPosition = {
   target: {
@@ -26,9 +27,12 @@ let preservedCameraPosition: mapCommon.CameraPosition | undefined = undefined;
 export struct HarmonyDialectMap {
   @Prop markers: MapMarker[];
   @Prop @Watch('onLitRegionNameChanged') litRegionName: string = '';
+  @Prop selectedRegionName: string = '';
+  onSelectRegion: (regionName: string) => void = (_regionName: string): void => {};
+  onXiaoyiOpen?: () => void;
   @State mapReady: boolean = false;
   @State mapFailed: boolean = false;
-  @State statusMessage: string = '正在加载真实地图';
+  @State statusMessage: string = '本地点位图可用，正在连接在线地图';
   @State locationRequestInFlight: boolean = false;
   @State locationStatusMessage: string = '';
   private mapController?: map.MapComponentController;
@@ -38,6 +42,7 @@ export struct HarmonyDialectMap {
   private mapMarkersReady: boolean = false;
   private mapLoadListener?: () => void;
   private mapErrorListener?: (error?: BusinessError) => void;
+  private markerClickListener?: (marker: map.Marker) => void;
   private hasRequestedLocation: boolean = false;
   private locationAuthorized: boolean = false;
   private mapOptions: mapCommon.MapOptions = {
@@ -90,6 +95,17 @@ export struct HarmonyDialectMap {
       };
       controller.on('error', this.mapErrorListener);
       controller.on('mapLoad', this.mapLoadListener);
+      this.markerClickListener = (clickedMarker: map.Marker): void => {
+        const markerIndex = this.dialectMarkers.indexOf(clickedMarker);
+        if (markerIndex < 0 || markerIndex >= this.markers.length) {
+          return;
+        }
+        const markerModel = this.markers[markerIndex];
+        this.locationStatusMessage = '已选择 ' + markerModel.regionName +
+          ' · 正在筛选该地区乡音信息';
+        this.onSelectRegion(markerModel.regionName);
+      };
+      controller.on('markerClick', this.markerClickListener);
       this.startMapLoadTimeout();
       const markersAdded = await this.addDialectMarkers(controller);
       if (this.mapController !== activeController || this.mapFailed) {
@@ -139,10 +155,16 @@ export struct HarmonyDialectMap {
 
   build() {
     Stack({ alignContent: Alignment.Center }) {
-      Row()
-        .width('100%')
-        .height('100%')
-        .backgroundColor($r('app.color.background_map'))
+      LocalDialectPointMap({
+        markers: this.markers,
+        litRegionName: this.litRegionName,
+        selectedRegionName: this.selectedRegionName,
+        onSelectRegion: (regionName: string): void => {
+          this.locationStatusMessage = '已选择 ' + regionName +
+            ' · 正在筛选该地区乡音信息';
+          this.onSelectRegion(regionName);
+        }
+      })
         .zIndex(0)
 
       if (!this.mapFailed) {
@@ -154,18 +176,18 @@ export struct HarmonyDialectMap {
           .height('100%')
           .opacity(this.mapReady ? 1 : 0)
           .zIndex(1)
-          .hitTestBehavior(this.mapReady ? HitTestMode.Default : HitTestMode.Block)
+          .hitTestBehavior(this.mapReady ? HitTestMode.Default : HitTestMode.None)
       }
 
       if (this.mapFailed) {
         Row({ space: 12 }) {
           Column({ space: 2 }) {
-            Text('真实地图未连接')
+            Text('当前使用本地点位图')
               .fontSize(14)
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.ink_primary'))
               .width('100%')
-            Text('请检查网络或 Map Kit 服务权限后重试')
+            Text(this.statusMessage)
               .fontSize(12)
               .fontColor($r('app.color.ink_muted'))
               .maxLines(2)
@@ -194,7 +216,7 @@ export struct HarmonyDialectMap {
         .shadow({ radius: 10, color: $r('app.color.shadow_soft') })
         .accessibilityText(this.statusMessage)
       } else if (!this.mapReady) {
-        Text('正在加载真实地图')
+        Text('本地点位图可用 · 正在连接在线地图')
           .width('calc(100% - 112vp)')
           .fontSize(12)
           .fontColor($r('app.color.ink_primary'))
@@ -222,6 +244,31 @@ export struct HarmonyDialectMap {
             .onClick(() => {
               this.requestMyLocation();
             })
+
+          if (this.onXiaoyiOpen !== undefined) {
+            Button('艺')
+              .fontSize(18)
+              .fontWeight(FontWeight.Bold)
+              .fontColor($r('app.color.on_emphasis'))
+              .width(48)
+              .height(48)
+              .backgroundColor($r('app.color.confirm'))
+              .borderRadius(24)
+              .onClick((): void => { this.onXiaoyiOpen?.(); })
+              .accessibilityText('打开小艺乡音助手')
+          }
+
+          if (this.hasRequestedLocation && !this.locationAuthorized) {
+            Button('去系统设置授权')
+              .fontSize(13)
+              .fontColor($r('app.color.accent_text'))
+              .height(48)
+              .padding({ left: 16, right: 16 })
+              .backgroundColor($r('app.color.brand_soft'))
+              .borderRadius(24)
+              .onClick((): void => { this.recoverLocationPermission(); })
+              .accessibilityText('前往系统设置开启位置权限')
+          }
 
           if (this.locationStatusMessage.length > 0) {
             Text(this.locationStatusMessage)
@@ -312,7 +359,7 @@ export struct HarmonyDialectMap {
     this.mapSurfaceLoaded = false;
     this.mapMarkersReady = false;
     this.mapReady = false;
-    this.statusMessage = '正在重新加载真实地图';
+    this.statusMessage = '本地点位图可用，正在重新连接在线地图';
     this.mapFailed = false;
   }
 
@@ -366,14 +413,19 @@ export struct HarmonyDialectMap {
     if (this.mapController && this.mapLoadListener) {
       this.mapController.off('mapLoad', this.mapLoadListener);
     }
+    if (this.mapController && this.markerClickListener) {
+      // API 20 的 off 回调声明与 on 不一致；传入兼容的空回调解除监听。
+      this.mapController.off('markerClick', (): void => {});
+    }
     // API 20 的 controller.off('error') 声明与 on('error') 回调类型不一致。
     // 旧控制器回调由 activeController 身份校验失效，组件卸载后不再改变界面状态。
     this.mapLoadListener = undefined;
     this.mapErrorListener = undefined;
+    this.markerClickListener = undefined;
   }
 
-  private formatCount(count: number): string {
-    return (count / 10000).toFixed(1) + ' 万同乡';
+  private formatCount(_count: number): string {
+    return '方言代表点';
   }
 
   private showDialectOverview(): void {
@@ -388,7 +440,7 @@ export struct HarmonyDialectMap {
       600
     );
     this.locationStatusMessage = '全国视图 · ' +
-      this.markers.length.toString() + ' 个演示方言点位';
+      this.markers.length.toString() + ' 个方言代表点';
   }
 
   private async requestMyLocation(): Promise<void> {
@@ -431,6 +483,35 @@ export struct HarmonyDialectMap {
       }
     } catch (permissionError) {
       this.locationStatusMessage = '定位暂不可用，仍可浏览全国乡音地图';
+    } finally {
+      this.locationRequestInFlight = false;
+    }
+  }
+
+  private async recoverLocationPermission(): Promise<void> {
+    if (this.locationRequestInFlight) {
+      return;
+    }
+    this.locationRequestInFlight = true;
+    this.locationStatusMessage = '正在打开系统权限设置';
+    const permissions: Permissions[] = [
+      'ohos.permission.LOCATION',
+      'ohos.permission.APPROXIMATELY_LOCATION'
+    ];
+    try {
+      const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      const results = await abilityAccessCtrl.createAtManager()
+        .requestPermissionOnSetting(context, permissions);
+      this.locationAuthorized = results.some((result: number): boolean => result === 0);
+      if (this.locationAuthorized && this.mapController) {
+        this.mapController.setMyLocationEnabled(true);
+        this.mapController.setMyLocationControlsEnabled(false);
+        await this.captureAndCenterLocation();
+      } else {
+        this.locationStatusMessage = '位置权限仍未开启，可手动选择地区继续使用';
+      }
+    } catch (error) {
+      this.locationStatusMessage = '未能打开权限设置，可手动选择地区继续使用';
     } finally {
       this.locationRequestInFlight = false;
     }

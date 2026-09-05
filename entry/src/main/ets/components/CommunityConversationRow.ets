@@ -82,7 +82,7 @@ export struct CommunityConversationRow {
             .backgroundColor($r('app.color.brand_soft'))
             .borderRadius(8)
 
-          Text(this.group.memberCount.toString() + ' 人关注')
+          Text('预置话题样例')
             .fontSize(11)
             .fontColor($r('app.color.ink_tertiary'))
 
@@ -148,9 +148,9 @@ export struct CommunityConversationRow {
   private accessibilityLabel(): string {
     let label = this.group.name + '，' + this.group.regionName + '，' +
       this.group.dialectName + '，' + this.group.summary + '，' +
-      this.lastMessagePreview() + '，本机演示话题组';
+      this.lastMessagePreview() + '，本机预置话题样例';
     if (this.joined && this.unreadCount() > 0) {
-      label += '，' + this.unreadCount().toString() + '条演示未读';
+      label += '，' + this.unreadCount().toString() + '条样例未读';
     }
     return label;
   }

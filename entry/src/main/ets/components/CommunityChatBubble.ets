@@ -7,6 +7,7 @@ const MUTED: ResourceColor = $r('app.color.ink_muted');
 export struct CommunityChatBubble {
   @Prop message: CommunityMessage;
   @Prop maxBubbleWidth: number = 276;
+  onPlayVoice: (clipId: string) => void = (_clipId: string): void => {};
 
   build() {
     Column({ space: 9 }) {
@@ -81,32 +82,49 @@ export struct CommunityChatBubble {
 
   @Builder
   private messageSurface() {
-    Text(this.message.content)
-      .fontSize(15)
-      .fontColor(INK)
-      .lineHeight(23)
-      .padding({ left: 14, right: 14, top: 10, bottom: 10 })
-      .constraintSize({ maxWidth: this.maxBubbleWidth })
+    if (this.message.voiceClipId !== undefined &&
+      this.message.voiceDurationSeconds !== undefined) {
+      Button() {
+        Row({ space: 10 }) {
+          SymbolGlyph($r('sys.symbol.waveform'))
+            .fontSize(20)
+            .fontColor([$r('app.color.accent_text')])
+          Text(this.message.voiceDurationSeconds.toString() + '″')
+            .fontSize(15)
+            .fontWeight(FontWeight.Medium)
+            .fontColor(INK)
+        }
+      }
+      .height(48)
+      .constraintSize({ minWidth: 108, maxWidth: this.maxBubbleWidth })
+      .padding({ left: 14, right: 14 })
       .backgroundColor(this.message.isCurrentUser ?
         $r('app.color.brand_soft') : $r('app.color.surface_elevated'))
-      .borderRadius(this.message.isCurrentUser ?
-        { topLeft: 16, topRight: 5, bottomLeft: 16, bottomRight: 16 } :
-        { topLeft: 5, topRight: 16, bottomLeft: 16, bottomRight: 16 })
-      .border({
-        width: 1,
-        color: $r('app.color.border')
-      })
-      .shadow({
-        radius: 6,
-        color: $r('app.color.shadow_card'),
-        offsetY: 2
-      })
+      .borderRadius(16)
+      .onClick((): void => { this.onPlayVoice(this.message.voiceClipId!); })
+      .accessibilityText('播放' + this.message.voiceDurationSeconds.toString() + '秒语音消息')
+    } else {
+      Text(this.message.content)
+        .fontSize(15)
+        .fontColor(INK)
+        .lineHeight(23)
+        .padding({ left: 14, right: 14, top: 10, bottom: 10 })
+        .constraintSize({ maxWidth: this.maxBubbleWidth })
+        .backgroundColor(this.message.isCurrentUser ?
+          $r('app.color.brand_soft') : $r('app.color.surface_elevated'))
+        .borderRadius(16)
+        .border({ width: 1, color: $r('app.color.border') })
+    }
   }
 
   private accessibilityLabel(): string {
+    if (this.message.voiceDurationSeconds !== undefined) {
+      return (this.message.isCurrentUser ? '我发送的' : this.message.senderLabel + '的') +
+        this.message.voiceDurationSeconds.toString() + '秒本机语音消息';
+    }
     if (this.message.isCurrentUser) {
       return '我发送的本机消息，未同步：' + this.message.content;
     }
-    return this.message.senderLabel + '的演示消息：' + this.message.content;
+    return this.message.senderLabel + '的预置样例消息：' + this.message.content;
   }
 }

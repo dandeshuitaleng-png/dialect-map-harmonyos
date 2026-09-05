@@ -19,11 +19,11 @@ const DIALECT_SOURCE_CATALOG: DialectSourceRecord[] = [
       '建立分类、代表地区和地图边界的来源字段'
     ],
     limitations: [
-      '未核对具体页码、调查点和地图授权',
+      '三批十五地已核对图号与 PDF 页，纸书印刷页码和地图授权仍待核验',
       '不得截图或复制地图作为产品底图'
     ],
     licenseStatus: SourceLicenseStatus.PENDING_REVIEW,
-    reviewStatus: SourceReviewStatus.CATALOG_ENTRY,
+    reviewStatus: SourceReviewStatus.HUMAN_REVIEWED,
     packagedContent: false
   },
   {

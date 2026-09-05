@@ -38,6 +38,7 @@ export struct CommunityMembershipSheet {
             .backgroundColor($r('app.color.surface_muted'))
             .borderRadius(15)
             .onClick(this.onCancel)
+            .accessibilityText('取消操作')
 
           Button(this.joined ? '确认退出' : '确认加入')
             .fontSize(14)
@@ -50,6 +51,7 @@ export struct CommunityMembershipSheet {
               $r('app.color.surface_recording') : $r('app.color.accent'))
             .borderRadius(15)
             .onClick(this.onConfirm)
+            .accessibilityText(this.joined ? '确认退出本机会话' : '确认加入本机列表')
         }
         .width('100%')
       }

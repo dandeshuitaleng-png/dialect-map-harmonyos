@@ -1,0 +1,24 @@
+[
+  {
+    "challenge_date": "2026-08-09",
+    "review_status": "approved",
+    "id": "daily-shanghainese-20260809",
+    "kind_label": "真实乡音听辨",
+    "icon": "ear.badge.waveform",
+    "title": "听一段真实的上海话",
+    "instruction": "播放真人录音，判断它属于哪一种方言。",
+    "answers": ["上海话", "粤语", "湘语"],
+    "correct_answer": "上海话",
+    "audio": {
+      "recording_id": "c3c76273-6a70-4d24-9c26-1c3c27b22d21",
+      "dialect_name": "上海话",
+      "attribution_text": "录音：M.O.X（真人上海话）",
+      "speaker_consent_version": "权利人以 CC BY-SA 4.0 公开发布",
+      "license_name": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Shanghainese.ogg",
+      "audio_url": "https://upload.wikimedia.org/wikipedia/commons/transcoded/5/54/Shanghainese.ogg/Shanghainese.ogg.mp3",
+      "expires_at": "2030-01-01T00:00:00Z"
+    }
+  }
+]

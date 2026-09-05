@@ -1,4 +1,15 @@
-import { VoicePassport } from '../models/DialectModels';
+import {
+  DialectClassification,
+  VoicePassport
+} from '../models/DialectModels';
+import {
+  getDialectClassificationByDialectName
+} from '../services/DialectClassificationCatalogService';
+import { common } from '@kit.AbilityKit';
+import { image } from '@kit.ImageKit';
+import { fileIo as fs } from '@kit.CoreFileKit';
+import { systemShare } from '@kit.ShareKit';
+import { PASSPORT_SHARE_IMAGE_NAME } from '../services/PassportPersistenceService';
 
 const PAPER: ResourceColor = $r('app.color.background_page');
 const INK: ResourceColor = $r('app.color.ink_primary');
@@ -13,8 +24,9 @@ export struct VoicePassportPage {
   @Prop passport: VoicePassport;
   @Link sharePreviewOpen: boolean;
   onBack: () => void = (): void => {};
-  @State voicePlaying: boolean = false;
   @State shareReady: boolean = false;
+  @State shareStatusMessage: string = '';
+  @State shareActionInFlight: boolean = false;
   @State windowWidth: number = 360;
 
   build() {
@@ -34,6 +46,7 @@ export struct VoicePassportPage {
 
                 Column({ space: 14 }) {
                   this.metricsCard()
+                  this.classificationSourceCard()
                   this.voiceCard()
                   this.litRegionsCard()
                   this.socialCard()
@@ -54,6 +67,7 @@ export struct VoicePassportPage {
             Column({ space: 14 }) {
               this.identityPassportCard(false)
               this.metricsCard()
+              this.classificationSourceCard()
               this.voiceCard()
               this.litRegionsCard()
               this.socialCard()
@@ -246,6 +260,7 @@ export struct VoicePassportPage {
       this.passport.nickname + '，' + this.passport.location + '，' +
       this.passport.dialectName + '乡音护照'
     )
+    .id(compact ? 'passportShareCard' : 'passportDetailCard')
   }
 
   @Builder
@@ -297,69 +312,79 @@ export struct VoicePassportPage {
   }
 
   @Builder
-  private voiceCard() {
-    Column({ space: 14 }) {
+  private classificationSourceCard() {
+    Column({ space: 10 }) {
       Row() {
-        Column({ space: 4 }) {
-          Text('代表语音')
-            .fontSize(16)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(INK)
-          Text(this.passport.representativeVoiceTitle)
-            .fontSize(13)
-            .fontColor(MUTED)
-        }
-        .alignItems(HorizontalAlign.Start)
+        Text('分类来源')
+          .fontSize(16)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(INK)
         Blank()
-        Text(this.formatDuration(this.passport.representativeVoiceDurationSeconds))
+        Text('地点代表点')
           .fontSize(12)
-          .fontColor(MUTED)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(ACCENT_TEXT)
       }
       .width('100%')
 
-      Row({ space: 14 }) {
-        Button({ type: ButtonType.Circle }) {
-          if (this.voicePlaying) {
-            SymbolGlyph($r('sys.symbol.pause'))
-              .fontSize(22)
-              .fontColor([$r('app.color.on_emphasis')])
-          } else {
-            SymbolGlyph($r('sys.symbol.play'))
-              .fontSize(22)
-              .fontColor([$r('app.color.on_emphasis')])
-          }
-        }
-        .width(48)
-        .height(48)
-        .backgroundColor(ACCENT_FILL)
-        .onClick((): void => { this.voicePlaying = !this.voicePlaying; })
-        .accessibilityText(this.voicePlaying ? '暂停代表语音' : '播放代表语音')
+      Text(this.passportClassification().sourceTitle + ' · ' +
+        this.passportClassification().sourceEdition)
+        .fontSize(12)
+        .fontColor(INK)
+        .lineHeight(18)
+        .width('100%')
 
-        Column({ space: 7 }) {
-          Progress({
-            value: this.voicePlaying ? 62 : 0,
-            total: 100,
-            type: ProgressType.Linear
-          })
-            .color(ACCENT_TEXT)
-            .backgroundColor($r('app.color.divider'))
-            .height(4)
-          Row({ space: 3 }) {
-            ForEach([8, 14, 10, 19, 12, 16, 7, 13], (height: number): void => {
-              Divider()
-                .vertical(true)
-                .height(height)
-                .strokeWidth(3)
-                .color(this.voicePlaying ?
-                  ACCENT_TEXT : $r('app.color.ink_tertiary'))
-                .borderRadius(2)
-            })
-          }
-          .height(20)
-        }
-        .layoutWeight(1)
-      }
-      .width('100%')
+      Text(this.passportClassification().administrativeScope)
+        .fontSize(12)
+        .fontColor(ACCENT_TEXT)
+        .lineHeight(18)
+        .width('100%')
+
+      Text(this.passportClassification().disputeNote)
+        .fontSize(12)
+        .fontColor(MUTED)
+        .lineHeight(18)
+        .width('100%')
+
+      Text('来源页已初核 · 第二人复核与出版授权待完成 · 护照分数为本机模拟')
+        .fontSize(12)
+        .fontColor(MUTED)
+        .lineHeight(18)
+        .width('100%')
+    }
+    .padding(20)
+    .width('100%')
+    .backgroundColor($r('app.color.passport_surface'))
+    .borderRadius(16)
+    .border({ width: 1, color: $r('app.color.border') })
+    .accessibilityGroup(true)
+    .accessibilityText(
+      '分类来源。' + this.passportClassification().administrativeScope +
+      '。' + this.passportClassification().disputeNote
+    )
+  }
+
+  private passportClassification(): DialectClassification {
+    return getDialectClassificationByDialectName(this.passport.dialectName);
+  }
+
+  @Builder
+  private voiceCard() {
+    Column({ space: 8 }) {
+      Text('乡音短句样例')
+        .fontSize(16)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(INK)
+        .width('100%')
+      Text(this.passport.representativeVoiceTitle)
+        .fontSize(15)
+        .fontColor(INK)
+        .lineHeight(22)
+        .width('100%')
+      Text('文字样例，不含可播放的录音文件')
+        .fontSize(12)
+        .fontColor(MUTED)
+        .width('100%')
     }
     .padding(20)
     .width('100%')
@@ -400,13 +425,22 @@ export struct VoicePassportPage {
 
   @Builder
   private socialCard() {
-    Row() {
-      SocialMetric({ value: this.passport.fellowFriends, label: '同乡好友' })
-      SocialMetric({ value: this.passport.following, label: '关注' })
-      SocialMetric({ value: this.passport.followers, label: '被关注' })
+    Column({ space: 8 }) {
+      Text('本机体验说明')
+        .fontSize(16)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(INK)
+        .width('100%')
+      Text(this.passport.isCurrentUser ?
+        '这份护照仅保存在本机，不创建账号、好友或关注关系。' :
+        '这是本机乡音护照，不代表实际用户、好友或关注关系。')
+        .fontSize(13)
+        .fontColor(MUTED)
+        .lineHeight(20)
+        .width('100%')
     }
     .width('100%')
-    .padding({ top: 18, bottom: 18 })
+    .padding(20)
     .backgroundColor($r('app.color.passport_surface'))
     .borderRadius(16)
     .border({ width: 1, color: $r('app.color.border') })
@@ -456,7 +490,15 @@ export struct VoicePassportPage {
 
         this.identityPassportCard(true)
 
-        Button(this.shareReady ? '乡音名片已准备（演示）' : '准备分享预览')
+        if (this.shareStatusMessage.length > 0) {
+          Text(this.shareStatusMessage)
+            .fontSize(12)
+            .fontColor(MUTED)
+            .width('100%')
+            .textAlign(TextAlign.Center)
+        }
+
+        Button(this.shareActionLabel())
           .height(50)
           .width('100%')
           .fontSize(14)
@@ -464,8 +506,9 @@ export struct VoicePassportPage {
           .fontColor($r('app.color.on_emphasis'))
           .backgroundColor(this.shareReady ? CONFIRM_FILL : ACCENT_FILL)
           .borderRadius(14)
-          .onClick((): void => { this.shareReady = true; })
-          .accessibilityText(this.shareReady ? '乡音名片已准备' : '准备乡音名片分享预览')
+          .enabled(!this.shareActionInFlight)
+          .onClick((): void => { this.generateAndSharePassportImage(); })
+          .accessibilityText('生成乡音护照图片并打开系统分享')
       }
       .width(this.isWideLayout() ? 520 : '100%')
       .padding({ left: 20, right: 20, top: 20, bottom: 28 })
@@ -483,14 +526,76 @@ export struct VoicePassportPage {
     return this.windowWidth >= 840;
   }
 
+  private async generateAndSharePassportImage(): Promise<void> {
+    if (this.shareActionInFlight) {
+      return;
+    }
+    this.shareActionInFlight = true;
+    this.shareStatusMessage = '正在生成乡音护照图片';
+    let pixelMap: image.PixelMap | undefined = undefined;
+    let packer: image.ImagePacker | undefined = undefined;
+    try {
+      pixelMap = await this.getUIContext().getComponentSnapshot()
+        .get('passportShareCard');
+      packer = image.createImagePacker();
+      const imageData = await packer.packToData(pixelMap, {
+        format: 'image/png',
+        quality: 100
+      });
+      const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      const imagePath = context.cacheDir + PASSPORT_SHARE_IMAGE_NAME;
+      const file = fs.openSync(imagePath,
+        fs.OpenMode.CREATE | fs.OpenMode.READ_WRITE | fs.OpenMode.TRUNC);
+      try {
+        fs.writeSync(file.fd, imageData);
+      } finally {
+        fs.closeSync(file);
+      }
+      const record: systemShare.SharedRecord = {
+        utd: 'general.png',
+        uri: 'file://' + imagePath,
+        title: this.passport.nickname + '的乡音护照',
+        description: '本机乡音文化体验内容，不含精确位置与原始录音'
+      };
+      const controller = new systemShare.ShareController(
+        new systemShare.SharedData(record)
+      );
+      this.shareReady = true;
+      this.shareStatusMessage = '图片已生成，正在打开系统分享';
+      await controller.show(context, {});
+      this.shareStatusMessage = '图片已生成；可再次打开系统分享';
+    } catch (_error) {
+      this.shareReady = false;
+      this.shareStatusMessage = '图片生成或系统分享失败，请稍后重试';
+    } finally {
+      if (pixelMap !== undefined) {
+        try {
+          pixelMap.release();
+        } catch (_releaseError) {
+        }
+      }
+      if (packer !== undefined) {
+        try {
+          packer.release();
+        } catch (_releaseError) {
+        }
+      }
+      this.shareActionInFlight = false;
+    }
+  }
+
+  private shareActionLabel(): string {
+    if (this.shareActionInFlight) {
+      return '正在生成并打开分享';
+    }
+    return this.shareReady ? '重新生成并分享图片' : '生成图片并系统分享';
+  }
+
   private passportNumber(): string {
     return this.passport.nickname.length.toString().padStart(2, '0') +
       this.passport.confidence.toString() + this.passport.retention.toString();
   }
 
-  private formatDuration(seconds: number): string {
-    return '00:' + (seconds < 10 ? '0' : '') + seconds.toString();
-  }
 }
 
 @Component
@@ -508,26 +613,6 @@ struct PassportMetric {
         .fontSize(28)
         .fontWeight(FontWeight.Bold)
         .fontColor(this.color)
-    }
-    .layoutWeight(1)
-    .alignItems(HorizontalAlign.Center)
-  }
-}
-
-@Component
-struct SocialMetric {
-  @Prop value: number;
-  @Prop label: string;
-
-  build() {
-    Column({ space: 5 }) {
-      Text(this.value.toString())
-        .fontSize(20)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(INK)
-      Text(this.label)
-        .fontSize(12)
-        .fontColor(MUTED)
     }
     .layoutWeight(1)
     .alignItems(HorizontalAlign.Center)

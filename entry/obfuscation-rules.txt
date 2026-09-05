@@ -1,0 +1,5 @@
+# Release-only ArkTS hardening. Keep property names stable because the app
+# exchanges typed objects with ArkUI, Preferences, Map Kit and system share.
+-enable-toplevel-obfuscation
+-compact
+-remove-log

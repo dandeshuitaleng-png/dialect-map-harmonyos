@@ -1,18 +1,31 @@
 import { KeyboardAvoidMode } from '@kit.ArkUI';
 import {
+  abilityAccessCtrl,
+  common,
+  PermissionRequestResult,
+  Permissions
+} from '@kit.AbilityKit';
+import {
   CommunityGroup,
   CommunityMessage
 } from '../models/DialectModels';
 import {
-  COMMUNITY_LOCAL_MESSAGE_LIMIT_PER_GROUP,
   COMMUNITY_MESSAGE_MAX_LENGTH,
   CommunityMessageStoreResult,
   createLocalCommunityMessage,
-  getCommunityMessages,
-  getLocalCommunityMessageCount,
+  createLocalCommunityVoiceMessage,
   storeLocalCommunityMessage,
   validateCommunityMessageDraft
 } from '../services/MockCommunityService';
+import { getCommunityMessages, createCommunityMessage } from '../services/CommunityService';
+import { TransientAudioCaptureService } from '../services/TransientAudioCaptureService';
+import {
+  LocalVoiceClip,
+  playLocalVoiceClip,
+  removeLocalVoiceClip,
+  stopLocalVoicePlayback,
+  storeLocalVoiceClip
+} from '../services/LocalCommunityVoiceService';
 import { CommunityChatBubble } from './CommunityChatBubble';
 import { CommunityChatComposer } from './CommunityChatComposer';
 import { CommunityChatHeader } from './CommunityChatHeader';
@@ -28,26 +41,34 @@ export struct CommunityGroupPage {
     (_groupId: string): void => {};
   @State windowWidth: number = 360;
   @State messages: CommunityMessage[] = [];
+  @State loadingMessages: boolean = true;
+  @State sending: boolean = false;
   @State draft: string = '';
   @State feedback: string = '';
   @State feedbackIsError: boolean = false;
   @State localSessionFull: boolean = false;
   @State safetyExpanded: boolean = false;
-  @State reportRecorded: boolean = false;
   @State groupBlocked: boolean = false;
+  @State voiceRecording: boolean = false;
+  @State voiceReady: boolean = false;
+  @State voiceElapsedSeconds: number = 0;
+  @State voiceStatusLabel: string = '';
+  @State voiceActionInFlight: boolean = false;
   private readonly chatScroller: Scroller = new Scroller();
   private localMessageSequence: number = 1;
   private previousKeyboardAvoidMode: KeyboardAvoidMode =
     KeyboardAvoidMode.OFFSET;
   private keyboardAvoidModeConfigured: boolean = false;
+  private voiceTimerId: number = -1;
+  private voiceCapture: TransientAudioCaptureService =
+    new TransientAudioCaptureService();
+  private pendingVoiceClip?: LocalVoiceClip;
 
   aboutToAppear(): void {
-    this.messages = getCommunityMessages(this.group.id);
-    this.localMessageSequence = this.messages.filter(
-      (message: CommunityMessage): boolean => message.isLocalOnly
-    ).length + 1;
-    this.localSessionFull = getLocalCommunityMessageCount(this.group.id) >=
-      COMMUNITY_LOCAL_MESSAGE_LIMIT_PER_GROUP;
+    this.voiceCapture.setInterruptionListener((): void => {
+      this.handleVoiceInterruption();
+    });
+    this.loadMessages();
     this.previousKeyboardAvoidMode =
       this.getUIContext().getKeyboardAvoidMode();
     this.getUIContext().setKeyboardAvoidMode(
@@ -57,6 +78,10 @@ export struct CommunityGroupPage {
   }
 
   aboutToDisappear(): void {
+    this.clearVoiceTimer();
+    this.voiceCapture.setInterruptionListener((): void => {});
+    this.voiceCapture.release();
+    stopLocalVoicePlayback();
     if (!this.keyboardAvoidModeConfigured) {
       return;
     }
@@ -74,6 +99,11 @@ export struct CommunityGroupPage {
           joined: this.joined,
           onBack: this.onBack,
           onMembership: (): void => {
+            if (this.voiceActionInFlight) {
+              this.voiceStatusLabel = '语音处理中，请稍后再切换加入状态';
+              this.feedbackIsError = true;
+              return;
+            }
             this.membershipConfirmOpen = true;
           },
           onSafety: (): void => {
@@ -87,17 +117,28 @@ export struct CommunityGroupPage {
         this.messageStream()
         CommunityChatComposer({
           draft: $draft,
-          canSend: this.joined && !this.localSessionFull && !this.groupBlocked,
+          canSend: this.joined && !this.sending && !this.groupBlocked &&
+            !this.localSessionFull && !this.loadingMessages,
           disabledHint: this.groupBlocked ? '已在本机屏蔽此话题组' :
-            (this.localSessionFull ? '本机会话已满' : '加入后可回应'),
+            (this.localSessionFull ? '本机会话已满' :
+              (this.loadingMessages ? '正在加载消息' :
+                (this.sending ? '正在发送' : '加入后可回应'))),
           feedback: this.feedback,
           feedbackIsError: this.feedbackIsError,
+          voiceStateLabel: this.voiceStatusLabel,
+          voiceActive: this.voiceRecording,
+          voiceReady: this.voiceReady,
+          voiceActionInFlight: this.voiceActionInFlight,
           onDraftChange: (value: string): void => {
             this.handleDraftChange(value);
           },
           onSend: (): void => {
             this.sendMessage();
-          }
+          },
+          onVoiceAction: (): void => { this.toggleVoiceRecording(); },
+          onVoiceCancel: (): void => { this.cancelVoiceRecording(); },
+          onVoicePlay: (): void => { this.playPendingVoice(); },
+          onVoiceSend: (): void => { this.sendVoiceMessage(); }
         })
       }
       .width('100%')
@@ -211,27 +252,7 @@ export struct CommunityGroupPage {
         (_rule: string, index: number): string => index.toString()
       )
 
-      Row({ space: 10 }) {
-        Button(this.reportRecorded ? '已记录举报' : '举报演示内容')
-          .fontSize(11)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(this.reportRecorded ?
-            $r('app.color.confirm_text') : $r('app.color.danger'))
-          .height(44)
-          .layoutWeight(1)
-          .backgroundColor(this.reportRecorded ?
-            $r('app.color.surface_confirm_soft') :
-            $r('app.color.surface_recording'))
-          .borderRadius(12)
-          .enabled(!this.reportRecorded)
-          .onClick((): void => {
-            this.reportRecorded = true;
-            this.feedback = '举报已记录在本次运行，未提交到服务器';
-            this.feedbackIsError = false;
-          })
-          .accessibilityText(this.reportRecorded ?
-            '举报已记录在本次运行' : '在本次运行中记录举报')
-
+      Row() {
         Button(this.groupBlocked ? '取消本机屏蔽' : '本机屏蔽')
           .fontSize(11)
           .fontWeight(FontWeight.Bold)
@@ -240,18 +261,25 @@ export struct CommunityGroupPage {
           .layoutWeight(1)
           .backgroundColor($r('app.color.surface_muted'))
           .borderRadius(12)
+          .enabled(!this.voiceActionInFlight)
           .onClick((): void => {
+            if (this.voiceActionInFlight) {
+              return;
+            }
             this.groupBlocked = !this.groupBlocked;
             this.feedback = this.groupBlocked ?
               '已在本次运行中屏蔽此话题组' : '已取消本机屏蔽';
             this.feedbackIsError = false;
+            if (this.groupBlocked) {
+              this.discardUnavailableVoice('已屏蔽并释放待发送语音');
+            }
           })
           .accessibilityText(this.groupBlocked ?
             '取消本机屏蔽此话题组' : '在本次运行中屏蔽此话题组')
       }
       .width('100%')
 
-      Text('演示边界：以上状态仅保存在本次运行，不代表服务器已受理。')
+      Text('本机体验会话：消息只保留在本次运行，不会同步到服务器。')
         .fontSize(10)
         .fontColor($r('app.color.ink_tertiary'))
         .width('100%')
@@ -272,7 +300,22 @@ export struct CommunityGroupPage {
       scroller: this.chatScroller,
       initialIndex: Math.max(0, this.messages.length - 1)
     }) {
-      if (this.groupBlocked) {
+      if (this.loadingMessages) {
+        ListItem() {
+          Column({ space: 10 }) {
+            LoadingProgress()
+              .width(28)
+              .height(28)
+              .color($r('app.color.accent'))
+            Text('正在加载会话')
+              .fontSize(13)
+              .fontColor($r('app.color.ink_muted'))
+          }
+          .width('100%')
+          .padding({ top: 56, bottom: 56 })
+          .accessibilityGroup(true)
+        }
+      } else if (this.groupBlocked) {
         ListItem() {
           Column({ space: 8 }) {
             Text('此话题组已在本机屏蔽')
@@ -295,7 +338,7 @@ export struct CommunityGroupPage {
               .fontSize(16)
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.ink_primary'))
-            Text(this.joined ? '发送第一条只保留在本次运行的消息。' : '加入后可以发送本机演示消息。')
+            Text(this.joined ? '发送第一条只保留在本次运行的消息。' : '加入后可以发送本机体验消息。')
               .fontSize(13)
               .fontColor($r('app.color.ink_muted'))
               .textAlign(TextAlign.Center)
@@ -311,7 +354,8 @@ export struct CommunityGroupPage {
             ListItem() {
               CommunityChatBubble({
                 message: message,
-                maxBubbleWidth: this.maxBubbleWidth()
+                maxBubbleWidth: this.maxBubbleWidth(),
+                onPlayVoice: (clipId: string): void => { this.playVoiceMessage(clipId); }
               })
             }
             .padding({ left: 14, right: 14 })
@@ -353,78 +397,334 @@ export struct CommunityGroupPage {
     this.feedbackIsError = false;
   }
 
-  private sendMessage(): CommunityMessageStoreResult {
+  private async sendMessage(): Promise<void> {
     if (this.groupBlocked) {
       this.feedback = '已在本机屏蔽此话题组';
       this.feedbackIsError = true;
-      return CommunityMessageStoreResult.INVALID;
+      return;
     }
     if (!this.joined) {
       this.feedback = '加入后可发言';
       this.feedbackIsError = true;
-      return CommunityMessageStoreResult.INVALID;
-    }
-    if (this.localSessionFull) {
-      this.feedback = '本机会话已满';
-      this.feedbackIsError = true;
-      return CommunityMessageStoreResult.LIMIT;
+      return;
     }
     const validationMessage = validateCommunityMessageDraft(this.draft);
     if (validationMessage.length > 0) {
       this.feedback = validationMessage;
       this.feedbackIsError = true;
-      return CommunityMessageStoreResult.INVALID;
+      return;
     }
+    this.sending = true;
+    const text = this.draft;
+    let sentSuccessfully = false;
+    try {
+      const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      const sent = await createCommunityMessage(this.group.id, text, context);
+      if (sent === undefined) throw new Error('send failed');
+      this.messages = this.messages.concat(sent);
+      this.feedback = '已发送';
+      this.feedbackIsError = false;
+      sentSuccessfully = true;
+    } catch {
+      const localMessage = createLocalCommunityMessage(
+        this.group.id,
+        text,
+        this.localMessageSequence,
+        this.currentTimeLabel()
+      );
+      if (localMessage !== undefined) {
+        const result = storeLocalCommunityMessage(localMessage);
+        if (result === CommunityMessageStoreResult.STORED) {
+          this.messages = this.messages.concat(localMessage);
+          this.localMessageSequence += 1;
+          this.feedback = '网络暂不可用，已保存为本机消息';
+          this.feedbackIsError = false;
+          sentSuccessfully = true;
+        } else if (result === CommunityMessageStoreResult.LIMIT) {
+          this.localSessionFull = true;
+          this.feedback = '本机会话已满（每群最多 100 条），消息未保存';
+          this.feedbackIsError = true;
+        } else {
+          this.feedback = '消息发送失败，内容仍保留在输入框，请稍后重试';
+          this.feedbackIsError = true;
+        }
+      } else {
+        this.feedback = '消息发送失败，内容仍保留在输入框，请稍后重试';
+        this.feedbackIsError = true;
+      }
+    } finally {
+      this.sending = false;
+    }
+    if (sentSuccessfully) {
+      this.draft = '';
+      setTimeout((): void => {
+        this.chatScroller.scrollToIndex(
+          this.messages.length - 1,
+          true,
+          ScrollAlign.END
+        );
+      }, 30);
+    }
+  }
 
-    const localMessage = createLocalCommunityMessage(
+  private async loadMessages(): Promise<void> {
+    this.loadingMessages = true;
+    try {
+      const loaded = await getCommunityMessages(this.group.id);
+      this.messages = loaded;
+    } catch {
+      this.feedback = '会话加载失败，请稍后重试';
+      this.feedbackIsError = true;
+    } finally {
+      this.loadingMessages = false;
+    }
+  }
+
+  private async toggleVoiceRecording(): Promise<void> {
+    if (this.voiceActionInFlight) {
+      return;
+    }
+    this.voiceActionInFlight = true;
+    try {
+      if (this.voiceRecording) {
+        await this.finishVoiceRecording();
+      } else {
+        await this.startVoiceRecording();
+      }
+    } finally {
+      this.voiceActionInFlight = false;
+    }
+  }
+
+  private async startVoiceRecording(): Promise<void> {
+    if (!this.joined || this.groupBlocked || this.localSessionFull) {
+      this.voiceStatusLabel = this.groupBlocked ? '本机已屏蔽该群聊' :
+        (this.localSessionFull ? '本机会话已满' : '加入群聊后才能发送语音');
+      this.feedbackIsError = true;
+      return;
+    }
+    try {
+      const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      const permission: Permissions = 'ohos.permission.MICROPHONE';
+      const manager = abilityAccessCtrl.createAtManager();
+      if (manager.getSelfPermissionStatus(permission) !==
+        abilityAccessCtrl.PermissionStatus.GRANTED) {
+        const result: PermissionRequestResult =
+          await manager.requestPermissionsFromUser(context, [permission]);
+        if (result.authResults[0] !== 0) {
+          this.voiceStatusLabel = '未获得麦克风权限，请在“隐私与关于”查看权限说明';
+          this.feedbackIsError = true;
+          return;
+        }
+      }
+      await this.voiceCapture.start();
+      this.pendingVoiceClip = undefined;
+      this.voiceReady = false;
+      this.voiceElapsedSeconds = 0;
+      this.voiceRecording = true;
+      this.feedbackIsError = false;
+      this.voiceStatusLabel = '正在录音 00:00 · 仅保留在本机内存';
+      this.startVoiceTimer();
+    } catch (_error) {
+      await this.voiceCapture.release();
+      this.pendingVoiceClip = undefined;
+      this.voiceRecording = false;
+      this.voiceReady = false;
+      this.voiceStatusLabel = '麦克风启动失败，可能正被其他应用占用';
+      this.feedbackIsError = true;
+    }
+  }
+
+  private async finishVoiceRecording(): Promise<void> {
+    this.clearVoiceTimer();
+    try {
+      const capturedBytes = await this.voiceCapture.stop();
+      this.voiceRecording = false;
+      if (capturedBytes <= 0 || this.voiceElapsedSeconds < 2) {
+        await this.voiceCapture.release();
+        this.voiceElapsedSeconds = 0;
+        this.voiceReady = false;
+        this.voiceStatusLabel = '录音不足 2 秒，请重新录制';
+        this.feedbackIsError = true;
+        return;
+      }
+      const clipId = 'voice-' + this.group.id + '-' +
+        this.localMessageSequence.toString();
+      this.pendingVoiceClip = this.voiceCapture.createLocalVoiceClip(
+        clipId,
+        this.voiceElapsedSeconds
+      );
+      this.voiceReady = this.pendingVoiceClip !== undefined;
+      this.voiceStatusLabel = this.voiceReady ?
+        '已录制 ' + this.voiceElapsedSeconds.toString() + ' 秒 · 可试听后发送' :
+        '语音准备失败，请重新录制';
+      this.feedbackIsError = !this.voiceReady;
+    } catch (_error) {
+      await this.voiceCapture.release();
+      this.pendingVoiceClip = undefined;
+      this.voiceRecording = false;
+      this.voiceElapsedSeconds = 0;
+      this.voiceReady = false;
+      this.voiceStatusLabel = '结束录音失败，采集资源已释放，请重新录制';
+      this.feedbackIsError = true;
+    }
+  }
+
+  private async cancelVoiceRecording(): Promise<void> {
+    if (this.voiceActionInFlight) {
+      return;
+    }
+    this.voiceActionInFlight = true;
+    this.clearVoiceTimer();
+    try {
+      await this.voiceCapture.release();
+      this.pendingVoiceClip = undefined;
+      this.voiceRecording = false;
+      this.voiceReady = false;
+      this.voiceElapsedSeconds = 0;
+      this.voiceStatusLabel = '已取消并释放本次语音';
+      this.feedbackIsError = false;
+    } finally {
+      this.voiceActionInFlight = false;
+    }
+  }
+
+  private async handleVoiceInterruption(): Promise<void> {
+    if (!this.voiceRecording || this.voiceActionInFlight) {
+      return;
+    }
+    this.voiceActionInFlight = true;
+    this.clearVoiceTimer();
+    try {
+      await this.voiceCapture.release();
+      this.pendingVoiceClip = undefined;
+      this.voiceRecording = false;
+      this.voiceReady = false;
+      this.voiceElapsedSeconds = 0;
+      this.voiceStatusLabel = '录音被通话或其他音频任务中断，请重新录制';
+      this.feedbackIsError = true;
+    } finally {
+      this.voiceActionInFlight = false;
+    }
+  }
+
+  private async playPendingVoice(): Promise<void> {
+    if (this.voiceActionInFlight || !this.joined || this.groupBlocked ||
+      this.localSessionFull) {
+      this.voiceStatusLabel = '当前状态不能试听或发送语音';
+      this.feedbackIsError = true;
+      return;
+    }
+    this.voiceActionInFlight = true;
+    try {
+      await this.voiceCapture.play();
+      this.voiceStatusLabel = '试听完成 · 语音尚未发送';
+    } catch (_error) {
+      this.voiceStatusLabel = '试听失败，请重新录制';
+      this.feedbackIsError = true;
+    } finally {
+      this.voiceActionInFlight = false;
+    }
+  }
+
+  private async sendVoiceMessage(): Promise<void> {
+    if (this.voiceActionInFlight) {
+      return;
+    }
+    if (!this.joined || this.groupBlocked || this.localSessionFull) {
+      this.voiceStatusLabel = this.groupBlocked ? '已屏蔽此话题组，不能发送语音' :
+        (this.localSessionFull ? '本机会话已满，不能发送语音' : '加入后才能发送语音');
+      this.feedbackIsError = true;
+      return;
+    }
+    if (this.pendingVoiceClip === undefined) {
+      this.voiceStatusLabel = '没有可发送的语音';
+      this.feedbackIsError = true;
+      return;
+    }
+    this.voiceActionInFlight = true;
+    const clip: LocalVoiceClip = this.pendingVoiceClip;
+    const message = createLocalCommunityVoiceMessage(
       this.group.id,
-      this.draft,
+      clip,
       this.localMessageSequence,
       this.currentTimeLabel()
     );
-    if (localMessage === undefined) {
-      this.feedback = '消息无效，请检查后重试';
+    if (message === undefined || !storeLocalVoiceClip(this.pendingVoiceClip)) {
+      this.voiceStatusLabel = '语音未保存：本机体验语音空间已满或数据无效，请重新打开应用后再试';
       this.feedbackIsError = true;
-      return CommunityMessageStoreResult.INVALID;
+      this.voiceActionInFlight = false;
+      return;
     }
-    const storeResult = storeLocalCommunityMessage(localMessage);
-    if (storeResult === CommunityMessageStoreResult.LIMIT) {
-      this.localSessionFull = true;
-      this.feedback = '本机会话已满';
+    const storeResult = storeLocalCommunityMessage(message);
+    if (storeResult !== CommunityMessageStoreResult.STORED) {
+      removeLocalVoiceClip(this.pendingVoiceClip.id);
+      this.localSessionFull = storeResult === CommunityMessageStoreResult.LIMIT;
+      this.voiceStatusLabel = this.localSessionFull ?
+        '本机会话已满，语音未保存' : '语音发送失败，请重试';
       this.feedbackIsError = true;
-      return CommunityMessageStoreResult.LIMIT;
+      this.voiceActionInFlight = false;
+      return;
     }
-    if (storeResult === CommunityMessageStoreResult.DUPLICATE) {
-      this.localMessageSequence += 1;
-      this.feedback = '消息未保存，请再次发送';
-      this.feedbackIsError = true;
-      return CommunityMessageStoreResult.DUPLICATE;
-    }
-    if (storeResult === CommunityMessageStoreResult.INVALID) {
-      this.feedback = '消息无效，请检查后重试';
-      this.feedbackIsError = true;
-      return CommunityMessageStoreResult.INVALID;
-    }
-
+    this.messages = this.messages.concat(message);
     this.localMessageSequence += 1;
-    this.messages = this.messages.concat(localMessage);
-    this.draft = '';
-    this.localSessionFull = getLocalCommunityMessageCount(this.group.id) >=
-      COMMUNITY_LOCAL_MESSAGE_LIMIT_PER_GROUP;
-    this.feedback = this.localSessionFull ?
-      '本机会话已满' : '已保存在本机，未同步';
-    this.feedbackIsError = false;
-    setTimeout((): void => {
-      this.chatScroller.scrollToIndex(
-        this.messages.length - 1,
-        true,
-        ScrollAlign.END
-      );
-    }, 30);
-    return CommunityMessageStoreResult.STORED;
+    try {
+      await this.voiceCapture.release();
+      this.pendingVoiceClip = undefined;
+      this.voiceReady = false;
+      this.voiceElapsedSeconds = 0;
+      this.voiceStatusLabel = '语音已保存在本机内存，未同步';
+      this.feedbackIsError = false;
+      setTimeout((): void => {
+        this.chatScroller.scrollToIndex(this.messages.length - 1, true, ScrollAlign.END);
+      }, 30);
+    } finally {
+      this.voiceActionInFlight = false;
+    }
+  }
+
+  private async playVoiceMessage(clipId: string): Promise<void> {
+    try {
+      const played = await playLocalVoiceClip(clipId);
+      this.feedback = played ? '语音播放完成' : '语音已随进程释放';
+      this.feedbackIsError = !played;
+    } catch (_error) {
+      this.feedback = '语音播放失败';
+      this.feedbackIsError = true;
+    }
+  }
+
+  private startVoiceTimer(): void {
+    this.clearVoiceTimer();
+    this.voiceTimerId = setInterval((): void => {
+      this.voiceElapsedSeconds += 1;
+      this.voiceStatusLabel = '正在录音 ' +
+        this.formatVoiceDuration(this.voiceElapsedSeconds) +
+        ' · 仅保留在本机内存';
+      if (this.voiceElapsedSeconds >= 60) {
+        this.finishVoiceRecordingFromTimer();
+      }
+    }, 1000);
+  }
+
+  private clearVoiceTimer(): void {
+    if (this.voiceTimerId >= 0) {
+      clearInterval(this.voiceTimerId);
+      this.voiceTimerId = -1;
+    }
+  }
+
+  private formatVoiceDuration(seconds: number): string {
+    return '00:' + seconds.toString().padStart(2, '0');
   }
 
   private confirmMembershipChange(): void {
+    if (this.voiceActionInFlight) {
+      this.membershipConfirmOpen = false;
+      this.voiceStatusLabel = '语音处理中，请稍后再切换加入状态';
+      this.feedbackIsError = true;
+      return;
+    }
     const wasJoined = this.joined;
     this.onToggleMembership(this.group.id);
     this.membershipConfirmOpen = false;
@@ -432,6 +732,7 @@ export struct CommunityGroupPage {
       this.draft = '';
       this.feedback = '加入后可发言';
       this.feedbackIsError = false;
+      this.discardUnavailableVoice('已退出并释放待发送语音');
       return;
     }
     this.feedback = '';
@@ -469,5 +770,35 @@ export struct CommunityGroupPage {
 
   private maxBubbleWidth(): number {
     return Math.min(520, Math.max(240, this.windowWidth * 0.64));
+  }
+
+  private async finishVoiceRecordingFromTimer(): Promise<void> {
+    if (this.voiceActionInFlight || !this.voiceRecording) {
+      return;
+    }
+    this.voiceActionInFlight = true;
+    try {
+      await this.finishVoiceRecording();
+    } finally {
+      this.voiceActionInFlight = false;
+    }
+  }
+
+  private async discardUnavailableVoice(statusMessage: string): Promise<void> {
+    if (this.voiceActionInFlight) {
+      return;
+    }
+    this.voiceActionInFlight = true;
+    this.clearVoiceTimer();
+    try {
+      await this.voiceCapture.release();
+      this.pendingVoiceClip = undefined;
+      this.voiceRecording = false;
+      this.voiceReady = false;
+      this.voiceElapsedSeconds = 0;
+      this.voiceStatusLabel = statusMessage;
+    } finally {
+      this.voiceActionInFlight = false;
+    }
   }
 }

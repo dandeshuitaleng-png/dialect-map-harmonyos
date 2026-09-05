@@ -1,0 +1,4 @@
+qwen-asr
+gradio>=5.49,<6
+spaces
+soundfile

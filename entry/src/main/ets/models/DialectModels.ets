@@ -43,12 +43,54 @@ export enum SourceReviewStatus {
   PRODUCT_READY = 'productReady'
 }
 
+export enum DialectBoundaryType {
+  REPRESENTATIVE_POINT = 'representativePoint',
+  CORE_AREA = 'coreArea',
+  TRANSITION_AREA = 'transitionArea',
+  DIALECT_ISLAND = 'dialectIsland',
+  UNCERTAIN = 'uncertain'
+}
+
 export enum RecordingState {
   READY = 'ready',
   RECORDING = 'recording',
   RECORDED = 'recorded',
   ASSESSING = 'assessing',
   RESULT = 'result'
+}
+
+/**
+ * The daily challenge is deliberately backed only by a reviewed, time-bounded
+ * human recording.  It is not a synthetic sample or an inference result.
+ */
+export interface LicensedDialectAudio {
+  readonly recordingId: string;
+  readonly dialectName: string;
+  readonly attributionText: string;
+  readonly speakerConsentVersion: string;
+  readonly licenseName: string;
+  readonly licenseUrl: string;
+  readonly sourceUrl: string;
+  readonly audioUrl: string;
+  readonly expiresAt: string;
+}
+
+export interface DailyDialectChallenge {
+  readonly id: string;
+  readonly kindLabel: string;
+  readonly icon: string;
+  readonly title: string;
+  readonly instruction: string;
+  readonly answers: Array<string>;
+  readonly correctAnswer: string;
+  readonly audio: LicensedDialectAudio;
+}
+
+export interface DailyChallengeProgress {
+  readonly lastCompletedDay: string;
+  readonly energy: number;
+  readonly streak: number;
+  readonly totalCompletions: number;
 }
 
 export interface DialectClassification {
@@ -58,6 +100,17 @@ export interface DialectClassification {
   readonly dialectFamily: string;
   readonly dialectGroup: string;
   readonly dialectBranch: string;
+  readonly classificationLevel: string;
+  readonly representativePoint: string;
+  readonly administrativeScope: string;
+  readonly boundaryType: DialectBoundaryType;
+  readonly atlasMapCodes: ReadonlyArray<string>;
+  readonly pdfPages: ReadonlyArray<string>;
+  readonly sourceTitle: string;
+  readonly sourceEdition: string;
+  readonly reviewStatus: SourceReviewStatus;
+  readonly licenseStatus: SourceLicenseStatus;
+  readonly disputeNote: string;
   readonly isDemonstration: boolean;
 }
 
@@ -100,22 +153,127 @@ export interface FellowUser {
 export interface DialectAssessment {
   readonly classificationId: string;
   readonly dialectName: string;
+  readonly ethnicity?: string;
+  readonly language?: string;
+  readonly dialect?: string;
   readonly dialectFamily: string;
   readonly dialectGroup: string;
   readonly dialectBranch: string;
   readonly regionName: string;
   readonly regionCandidates: Array<DialectRegionCandidate>;
+  readonly coverageScopes?: Array<DialectCoverageScope>;
   readonly confidence: number;
   readonly retention: number;
   readonly evidence: Array<string>;
   readonly similarDialects: Array<string>;
   readonly needsConfirmation: boolean;
+  readonly isUnknown?: boolean;
+  readonly sourceStatus?: string;
   readonly isSimulated: boolean;
 }
 
 export interface DialectRegionCandidate {
   readonly name: string;
+  readonly region?: string;
   readonly confidence: number;
+}
+
+export interface DialectCoverageScope {
+  readonly name: string;
+  readonly provinceName: string;
+  readonly prefectureName: string;
+  readonly countyName: string;
+  readonly coverageLevel: string;
+  readonly coordinateStatus: string;
+}
+
+export interface LanguageDirectoryCounts {
+  readonly ethnicities: number;
+  readonly entities: number;
+  readonly variants: number;
+  readonly coverageScopes: number;
+  readonly surveyPoints: number;
+}
+
+export interface LanguageDirectoryEntity {
+  readonly id: string;
+  readonly ethnicityName: string;
+  readonly languageName: string;
+  readonly languageFamily: string;
+  readonly entityLevel: string;
+  readonly regionScope: string;
+  readonly sourceId: string;
+  readonly reviewStatus: string;
+  readonly licenseStatus: string;
+  readonly disputeNote: string;
+}
+
+export interface LanguageDirectoryVariant {
+  readonly id: string;
+  readonly ethnicityName: string;
+  readonly languageName: string;
+  readonly dialectName: string;
+  readonly languageFamily: string;
+  readonly regionScope: string;
+  readonly reviewStatus: string;
+  readonly licenseStatus: string;
+  readonly disputeNote: string;
+}
+
+export interface LanguageDirectoryCoverage {
+  readonly id: string;
+  readonly variantId: string;
+  readonly ethnicityName: string;
+  readonly languageName: string;
+  readonly dialectName: string;
+  readonly regionName: string;
+  readonly coverageLevel: string;
+  readonly coordinateStatus: string;
+  readonly reviewStatus: string;
+  readonly licenseStatus: string;
+}
+
+export interface LanguageDirectorySurveyPoint {
+  readonly id: string;
+  readonly coverageId: string;
+  readonly variantId: string;
+  readonly ethnicityName: string;
+  readonly languageName: string;
+  readonly dialectName: string;
+  readonly provinceName: string;
+  readonly prefectureName: string;
+  readonly countyName: string;
+  readonly townshipName: string;
+  readonly surveyPoint: string;
+  readonly latitude?: number;
+  readonly longitude?: number;
+  readonly coordinateStatus: string;
+  readonly coordinatePrecision: string;
+  readonly sourceId: string;
+  readonly sourceLocator: string;
+  readonly reviewStatus: string;
+  readonly licenseStatus: string;
+  readonly disputeNote: string;
+}
+
+export interface LanguageDirectorySource {
+  readonly id: string;
+  readonly title: string;
+  readonly authority: string;
+  readonly reviewStatus: string;
+  readonly licenseStatus: string;
+}
+
+export interface LanguageDirectoryResponse {
+  readonly schemaVersion: string;
+  readonly generatedAt: string;
+  readonly counts: LanguageDirectoryCounts;
+  readonly entities: Array<LanguageDirectoryEntity>;
+  readonly variants: Array<LanguageDirectoryVariant>;
+  readonly coverageScopes: Array<LanguageDirectoryCoverage>;
+  readonly surveyPoints: Array<LanguageDirectorySurveyPoint>;
+  readonly sources: Array<LanguageDirectorySource>;
+  readonly limitations: Array<string>;
 }
 
 export interface VoicePassport {
@@ -152,6 +310,8 @@ export interface CommunityMessage {
   readonly senderLabel: string;
   readonly senderInitials: string;
   readonly content: string;
+  readonly voiceDurationSeconds?: number;
+  readonly voiceClipId?: string;
   readonly timeLabel: string;
   readonly timeSeparatorLabel: string;
   readonly isCurrentUser: boolean;

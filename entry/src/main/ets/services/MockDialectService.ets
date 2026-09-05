@@ -7,6 +7,11 @@ import {
   MapMarker,
   VoicePassport
 } from '../models/DialectModels';
+import {
+  getDialectClassification,
+  getDialectClassifications
+} from './DialectClassificationCatalogService';
+import { detectDialectByAI, isAiConfigured } from './DialectAiService';
 
 const MIN_SCORE: number = 0;
 const MAX_SCORE: number = 100;
@@ -17,93 +22,19 @@ interface SimulatedAssessmentDetails {
   readonly similarDialects: Array<string>;
 }
 
-const DIALECT_CLASSIFICATIONS: DialectClassification[] = [
-  {
-    id: 'sichuan-chengyu',
-    regionName: '四川',
-    dialectName: '四川话',
-    dialectFamily: '官话',
-    dialectGroup: '西南官话',
-    dialectBranch: '成渝片',
-    isDemonstration: true
-  },
-  {
-    id: 'chongqing-chengyu',
-    regionName: '重庆',
-    dialectName: '重庆话',
-    dialectFamily: '官话',
-    dialectGroup: '西南官话',
-    dialectBranch: '成渝片',
-    isDemonstration: true
-  },
-  {
-    id: 'guangzhou-guangfu',
-    regionName: '广州',
-    dialectName: '粤语',
-    dialectFamily: '粤语',
-    dialectGroup: '广府片',
-    dialectBranch: '广州话',
-    isDemonstration: true
-  },
-  {
-    id: 'shanghai-suhujia',
-    regionName: '上海',
-    dialectName: '上海话',
-    dialectFamily: '吴语',
-    dialectGroup: '太湖片',
-    dialectBranch: '苏沪嘉小片',
-    isDemonstration: true
-  },
-  {
-    id: 'beijing-jingshi',
-    regionName: '北京',
-    dialectName: '北京话',
-    dialectFamily: '官话',
-    dialectGroup: '北京官话',
-    dialectBranch: '京师片',
-    isDemonstration: true
-  }
-];
-
 export function clampScore(score: number): number {
   return Math.max(MIN_SCORE, Math.min(MAX_SCORE, Math.round(score)));
 }
 
-export function getDialectClassifications(): DialectClassification[] {
-  return DIALECT_CLASSIFICATIONS;
-}
-
 export function getDemonstrationDialectZoneCount(): number {
   const zoneKeys: string[] = [];
-  DIALECT_CLASSIFICATIONS.forEach((item: DialectClassification): void => {
+  getDialectClassifications().forEach((item: DialectClassification): void => {
     const zoneKey = item.dialectGroup + '|' + item.dialectBranch;
     if (zoneKeys.indexOf(zoneKey) < 0) {
       zoneKeys.push(zoneKey);
     }
   });
   return zoneKeys.length;
-}
-
-export function getDialectClassification(
-  regionName: string,
-  dialectName: string
-): DialectClassification {
-  const matched = DIALECT_CLASSIFICATIONS.find(
-    (item: DialectClassification): boolean =>
-      item.regionName === regionName && item.dialectName === dialectName
-  );
-  if (matched !== undefined) {
-    return matched;
-  }
-  return {
-    id: 'unclassified',
-    regionName: regionName,
-    dialectName: dialectName,
-    dialectFamily: '待确认',
-    dialectGroup: '分类待确认',
-    dialectBranch: '地方口音',
-    isDemonstration: true
-  };
 }
 
 export function getMapMarkers(): MapMarker[] {
@@ -114,9 +45,9 @@ export function getMapMarkers(): MapMarker[] {
       regionName: '四川',
       dialectName: '四川话',
       dialectFamily: '官话',
-      dialectGroup: '西南官话',
-      dialectBranch: '成渝片',
-      fellowCount: 87000,
+      dialectGroup: '西南官话 · 川黔片',
+      dialectBranch: '成渝小片',
+      fellowCount: 0,
       latitude: 30.5728,
       longitude: 104.0668,
       xRatio: 0.36,
@@ -128,9 +59,9 @@ export function getMapMarkers(): MapMarker[] {
       regionName: '重庆',
       dialectName: '重庆话',
       dialectFamily: '官话',
-      dialectGroup: '西南官话',
-      dialectBranch: '成渝片',
-      fellowCount: 62000,
+      dialectGroup: '西南官话 · 川黔片',
+      dialectBranch: '成渝小片',
+      fellowCount: 0,
       latitude: 29.5630,
       longitude: 106.5516,
       xRatio: 0.42,
@@ -143,8 +74,8 @@ export function getMapMarkers(): MapMarker[] {
       dialectName: '粤语',
       dialectFamily: '粤语',
       dialectGroup: '广府片',
-      dialectBranch: '广州话',
-      fellowCount: 54000,
+      dialectBranch: '广州代表点',
+      fellowCount: 0,
       latitude: 23.1291,
       longitude: 113.2644,
       xRatio: 0.57,
@@ -152,13 +83,13 @@ export function getMapMarkers(): MapMarker[] {
     },
     {
       id: 'shanghai',
-      classificationId: 'shanghai-suhujia',
+      classificationId: 'shanghai-shanghai',
       regionName: '上海',
       dialectName: '上海话',
       dialectFamily: '吴语',
       dialectGroup: '太湖片',
-      dialectBranch: '苏沪嘉小片',
-      fellowCount: 36000,
+      dialectBranch: '上海小片',
+      fellowCount: 0,
       latitude: 31.2304,
       longitude: 121.4737,
       xRatio: 0.76,
@@ -171,8 +102,8 @@ export function getMapMarkers(): MapMarker[] {
       dialectName: '北京话',
       dialectFamily: '官话',
       dialectGroup: '北京官话',
-      dialectBranch: '京师片',
-      fellowCount: 41000,
+      dialectBranch: '京师小片',
+      fellowCount: 0,
       latitude: 39.9042,
       longitude: 116.4074,
       xRatio: 0.65,
@@ -182,88 +113,7 @@ export function getMapMarkers(): MapMarker[] {
 }
 
 export function getFellowUsers(): FellowUser[] {
-  return [
-    {
-      id: 'user-xiaoman',
-      nickname: '小满',
-      initials: '满',
-      location: '北京 · 朝阳区',
-      dialectName: '四川话',
-      dialectFamily: '官话',
-      dialectGroup: '西南官话',
-      dialectBranch: '成渝片',
-      distanceText: '1.2 km',
-      source: FellowSource.NEARBY,
-      confidence: 87,
-      retention: 76,
-      litRegions: ['四川', '北京'],
-      fellowFriends: 128,
-      following: 256,
-      followers: 318,
-      voiceTitle: '离家以后，最想念这句话',
-      voiceDurationSeconds: 16
-    },
-    {
-      id: 'user-aqing',
-      nickname: '阿晴',
-      initials: '晴',
-      location: '广州 · 越秀区',
-      dialectName: '粤语',
-      dialectFamily: '粤语',
-      dialectGroup: '广府片',
-      dialectBranch: '广州话',
-      distanceText: '同城',
-      source: FellowSource.RECOMMENDED,
-      confidence: 93,
-      retention: 88,
-      litRegions: ['广东', '香港'],
-      fellowFriends: 96,
-      following: 184,
-      followers: 427,
-      voiceTitle: '得闲饮茶',
-      voiceDurationSeconds: 12
-    },
-    {
-      id: 'user-zhou',
-      nickname: '周叔',
-      initials: '周',
-      location: '上海 · 黄浦区',
-      dialectName: '上海话',
-      dialectFamily: '吴语',
-      dialectGroup: '太湖片',
-      dialectBranch: '苏沪嘉小片',
-      distanceText: '当前区域',
-      source: FellowSource.CURRENT_REGION,
-      confidence: 91,
-      retention: 82,
-      litRegions: ['上海'],
-      fellowFriends: 72,
-      following: 118,
-      followers: 209,
-      voiceTitle: '弄堂里的叫卖声',
-      voiceDurationSeconds: 34
-    },
-    {
-      id: 'user-dayu',
-      nickname: '大宇',
-      initials: '宇',
-      location: '北京 · 西城区',
-      dialectName: '北京话',
-      dialectFamily: '官话',
-      dialectGroup: '北京官话',
-      dialectBranch: '京师片',
-      distanceText: '家乡推荐',
-      source: FellowSource.RECOMMENDED,
-      confidence: 89,
-      retention: 79,
-      litRegions: ['北京', '天津'],
-      fellowFriends: 110,
-      following: 146,
-      followers: 268,
-      voiceTitle: '您吃了吗',
-      voiceDurationSeconds: 11
-    }
-  ];
+  return []
 }
 
 export function filterFellowsBySource(
@@ -349,7 +199,7 @@ function getSimulatedAssessmentDetails(
       evidence: [
         '部分声母与韵母特征接近成都样例',
         '句尾语气与成都周边表达接近',
-        '词汇节奏符合四川成渝片样例'
+        '词汇节奏符合四川成渝小片样例'
       ],
       similarDialects: ['重庆话', '自贡话']
     };
@@ -364,7 +214,7 @@ function getSimulatedAssessmentDetails(
       evidence: [
         '部分声母与韵母特征接近重庆样例',
         '句尾语气与重庆城区表达接近',
-        '词汇节奏符合重庆成渝片样例'
+        '词汇节奏符合重庆成渝小片样例'
       ],
       similarDialects: ['四川话', '泸州话']
     };
@@ -384,7 +234,7 @@ function getSimulatedAssessmentDetails(
       similarDialects: ['佛山话', '香港粤语']
     };
   }
-  if (classification.id === 'shanghai-suhujia') {
+  if (classification.id === 'shanghai-shanghai') {
     return {
       regionCandidates: [
         { name: '上海', confidence: 82 },
@@ -409,7 +259,7 @@ function getSimulatedAssessmentDetails(
       evidence: [
         '部分声韵特征接近北京话样例',
         '语流节奏与北京城区表达接近',
-        '词汇特征符合北京官话京师片样例'
+        '词汇特征符合北京官话京师小片样例'
       ],
       similarDialects: ['承德话', '天津话']
     };
@@ -418,7 +268,7 @@ function getSimulatedAssessmentDetails(
     regionCandidates: [
       { name: classification.regionName, confidence: 100 }
     ],
-    evidence: ['当前演示库没有该乡音的细分识别依据'],
+    evidence: ['当前分类目录没有该乡音的细分识别依据'],
     similarDialects: []
   };
 }
@@ -469,4 +319,14 @@ export function createCurrentUserFromAssessment(assessment: DialectAssessment): 
     voiceTitle: '我的第一段乡音',
     voiceDurationSeconds: 14
   };
+}
+
+export async function createAiAssessment(text: string): Promise<DialectAssessment> {
+  return await detectDialectByAI(text);
+}
+
+export async function getNearbyFellowUsers(lat: number, lon: number): Promise<FellowUser[]> {
+  void lat;
+  void lon;
+  return [];
 }

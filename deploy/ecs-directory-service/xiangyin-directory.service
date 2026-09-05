@@ -1,0 +1,19 @@
+[Unit]
+Description=Xiangyin read-only language directory API
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/opt/xiangyin-directory
+EnvironmentFile=/etc/xiangyin-directory.env
+ExecStart=/usr/bin/python3 /opt/xiangyin-directory/app.py
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/opt/xiangyin-directory
+
+[Install]
+WantedBy=multi-user.target
